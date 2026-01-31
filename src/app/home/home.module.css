@@ -1,0 +1,430 @@
+/* --- ヒーローセクション --- */
+.homeHero {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1.1; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.homeHero::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url('https://tappy-heartful.github.io/streak-connect-images/background/home.jpg'); 
+    background-size: cover;
+    background-position: center;
+    filter: blur(2px) brightness(0.5);
+    z-index: -1;
+}
+
+.homeHero::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    background: linear-gradient(to bottom, transparent, #000);
+    z-index: 0;
+}
+
+.homeHeroContent {
+    text-align: center;
+    z-index: 1;
+    padding-top: 80px; 
+}
+
+.bandName {
+    font-family: 'Impact', 'Charcoal', sans-serif;
+    font-size: 3.2rem;
+    line-height: 1.1;
+    margin: 0;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.subName {
+    font-size: 1.8rem;
+    display: block;
+}
+
+.accentJ {
+    color: #e7211a;
+}
+
+.tagline {
+    font-size: 0.9rem;
+    margin-top: 10px;
+    color: #eee;
+    font-weight: bold;
+    letter-spacing: 0.2em;
+}
+
+/* --- ステータス・共通 --- */
+.statusBadge {
+    font-size: 0.8rem;
+    color: #888;
+    background: #222;
+    padding: 4px 12px;
+    border-radius: 4px;
+    border: 1px solid #333;
+    display: inline-block;
+}
+
+/* --- チケット情報 --- */
+.ticketGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.ticketCard {
+    display: flex;
+    flex-direction: column;
+    background: #111;
+    border: 1px solid #222;
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+@media (min-width: 768px) {
+    .ticketCard {
+        flex-direction: row;
+        min-height: 220px;
+    }
+}
+
+.ticketImgWrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #222;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+@media (min-width: 768px) {
+    .ticketImgWrapper {
+        width: 35%;
+        aspect-ratio: auto;
+    }
+}
+
+.ticketImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+    transition: 0.5s;
+}
+
+.imgOverlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(231, 33, 26, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: 0.3s;
+    z-index: 2;
+}
+
+.ticketImgWrapper:hover .imgOverlay { opacity: 1; }
+.ticketImgWrapper:hover .ticketImg { transform: scale(1.05); opacity: 1; }
+
+.ticketInfo {
+    padding: 25px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.tDate {
+    font-family: 'Impact', sans-serif;
+    color: #e7211a;
+    font-size: 1.2rem;
+    letter-spacing: 0.1em;
+}
+
+.tTitle {
+    color: #fff;
+    font-size: 1.5rem;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.tDetails {
+    font-size: 0.85rem;
+    color: #aaa;
+    line-height: 1.6;
+}
+
+.tDetails :global(.fa-solid) {
+    width: 20px;
+    color: #e7211a;
+}
+
+/* --- ボタン --- */
+.btnBase {
+    padding: 12px;
+    text-align: center;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    border: none;
+    transition: 0.3s;
+    flex: 1;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btnDetail {
+    composes: btnBase;
+    background: transparent;
+    border: 1px solid #fff;
+    color: #fff;
+    margin-top: 20px;
+}
+.btnDetail:hover { background: #fff; color: #000; }
+
+.btnTicketDetail {
+    composes: btnBase;
+    background: #fff;
+    color: #000;
+}
+.btnTicketDetail:hover { background: #e9e9e9; }
+
+.btnReserve {
+    composes: btnBase;
+    background: #e7211a;
+    color: #fff;
+    margin-top: 20px;
+}
+.btnReserve:hover { background: #b61a15; }
+
+.btnDelete {
+    composes: btnBase;
+    background: transparent;
+    border: 1px solid #e7211a;
+    color: #e7211a;
+}
+.btnDelete:hover { background: rgba(231, 33, 26, 0.1); }
+
+.reservedLabel {
+    background: #e7211a;
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+/* --- Concept --- */
+.conceptLead {
+    font-size: 1.4rem;
+    color: #e7211a;
+    font-weight: bold;
+    line-height: 1.5;
+    margin-bottom: 25px;
+}
+
+.conceptText {
+    line-height: 1.8;
+    color: #ccc;
+    font-size: 0.95rem;
+}
+
+/* --- メンバー情報 --- */
+.bgDarker {
+    background-color: #050505;
+    padding-top: 80px;
+    padding-bottom: 80px;
+}
+
+.subSectionTitle {
+    text-align: center;
+    color: #666;
+    margin-top: -20px;
+    margin-bottom: 40px;
+    font-size: 0.9rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.memberGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    margin-top: 40px;
+}
+
+.memberCard {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 200px;
+    background: #000;
+    overflow: hidden;
+    border-bottom: 1px solid #1a1a1a;
+}
+
+.memberImgWrapper {
+    position: absolute;
+    top: 0; left: 0; width: 70%; height: 100%;
+    z-index: 1;
+    overflow: hidden; 
+}
+
+.memberImg {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    filter: contrast(1.1);
+    transition: 0.8s ease;
+    transform-origin: left center;
+}
+
+.memberImgWrapper::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to right, transparent 0%, #000 100%);
+    z-index: 2;
+}
+
+.memberInfoContent {
+    position: relative;
+    z-index: 3;
+    margin-left: auto;
+    width: 60%;
+    padding: 20px 20px 20px 0;
+    text-align: right;
+}
+
+.memberRole {
+    font-family: 'Impact', sans-serif;
+    color: #e7211a;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.memberName {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 4px;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+}
+
+.memberOrigin {
+    font-size: 0.75rem;
+    color: #888;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.memberCard:hover .memberImg {
+    filter: grayscale(0%) contrast(1.0);
+    transform: scale(1.05);
+}
+
+/* --- SNS Section --- */
+.snsContainer { text-align: center; padding: 10px 0; }
+.snsDesc { margin-bottom: 20px; font-size: 0.9rem; color: #ccc; }
+.snsLinks { display: flex; flex-direction: column; gap: 15px; align-items: center; }
+
+.snsBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 300px;
+  padding: 12px 20px;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: opacity 0.3s;
+  color: #fff;
+}
+
+.lineBtn { background-color: #06C755; }
+.instaBtn { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
+
+@media (min-width: 600px) { .snsLinks { flex-direction: row; justify-content: center; } }
+
+/* --- Goods --- */
+.goodsDesc { font-size: 0.9rem; margin-bottom: 20px; color: #ccc; }
+.horizontalScroll {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding-bottom: 15px;
+    scroll-snap-type: x mandatory;
+}
+.horizontalScroll::-webkit-scrollbar { height: 4px; }
+.horizontalScroll::-webkit-scrollbar-thumb { background: #e7211a; }
+
+.squareImg {
+    width: 200px; height: 200px;
+    object-fit: cover; flex-shrink: 0;
+    scroll-snap-align: start;
+    border: 1px solid #333;
+}
+
+.btnArea { margin-top: 20px; text-align: center; }
+.btnLink {
+    display: inline-block;
+    padding: 12px 25px;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 4px;
+    border: 1px solid #e7211a;
+    color: #e7211a;
+    transition: 0.3s;
+}
+.btnLink:hover { background: #e7211a; color: #fff; }
+
+.coffeeCard {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: #111;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.portraitImg {
+    width: 100%; max-width: 300px;
+    height: auto; margin: 0 auto;
+}
+
+/* --- Media/History --- */
+.mediaGrid { display: flex; flex-direction: column; gap: 80px; }
+.mediaCard { max-width: 540px; margin: 0 auto; width: 100%; }
+.mediaInfo { margin-bottom: 20px; text-align: center; }
+.mediaDate { font-family: 'Impact', sans-serif; color: #e7211a; font-size: 1.2rem; display: block; }
+.mediaTitle { font-size: 1.1rem; margin: 8px 0; color: #fff; font-weight: bold; }
+
+@media (min-width: 768px) {
+    .memberCard { min-height: 250px; }
+    .memberName { font-size: 2rem; }
+    .memberImgWrapper { width: 60%; }
+}
