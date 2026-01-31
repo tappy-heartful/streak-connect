@@ -121,7 +121,7 @@ export default function MyPage() {
 
   return (
     <main>
-      <section className="hero" style={{ "--hero-bg": 'url("https://tappy-heartful.github.io/streak-connect-images/background/mypage.jpg")' } as any}>
+      <section className="hero" style={{ "--hero-bg": 'url("https://tappy-heartful.github.io/streak-images/connect/background/mypage.jpg")' } as any}>
         <div className="hero-content">
           <h1 className="page-title">MY PAGE</h1>
           <p className="tagline">User Profile & Tickets</p>

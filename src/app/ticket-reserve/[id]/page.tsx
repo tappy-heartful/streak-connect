@@ -171,7 +171,7 @@ export default function TicketReservePage() {
 
   return (
     <main>
-      <section className="hero" style={{ "--hero-bg": 'url("https://tappy-heartful.github.io/streak-connect-images/background/ticket-reserve.jpg")' } as any}>
+      <section className="hero" style={{ "--hero-bg": 'url("https://tappy-heartful.github.io/streak-images/connect/background/ticket-reserve.jpg")' } as any}>
         <div className="hero-content">
           <h1 className="page-title">RESERVE</h1>
           <p className="tagline">Ticket Reservation</p>
