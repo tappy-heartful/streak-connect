@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   title: "SSJO",
   description: "Swing Streak Jazz Orchestra Official Store & Reserve",
   icons: {
-    icon: "https://tappy-heartful.github.io/streak-connect-images/favicon.png",
-    apple: "https://tappy-heartful.github.io/streak-connect-images/favicon.png",
+    icon: "https://tappy-heartful.github.io/streak-images/connect/favicon.png",
+    apple: "https://tappy-heartful.github.io/streak-images/connect/favicon.png",
   },
 };
 

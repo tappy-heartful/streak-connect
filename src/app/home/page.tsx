@@ -108,7 +108,7 @@ export default function HomePage() {
                 <div key={live.id} className={styles.ticketCard}>
                   <div className={styles.ticketImgWrapper}>
                     <img 
-                      src={live.flyerUrl || 'https://tappy-heartful.github.io/streak-connect-images/favicon.png'} 
+                      src={live.flyerUrl || 'https://tappy-heartful.github.io/streak-images/connect/favicon.png'} 
                       className={styles.ticketImg} 
                       alt="flyer" 
                     />
@@ -159,7 +159,7 @@ export default function HomePage() {
               <div key={m.name} className={styles.memberCard}>
                 <div className={styles.memberImgWrapper}>
                   <img 
-                    src={`https://tappy-heartful.github.io/streak-connect-images/members/${m.name}.jpg`} 
+                    src={`https://tappy-heartful.github.io/streak-images/connect/members/${m.name}.jpg`} 
                     alt={m.name} 
                     className={styles.memberImg} 
                   />
@@ -203,7 +203,7 @@ export default function HomePage() {
               {goodsItems.map((item, i) => (
                 <img 
                   key={i} 
-                  src={`https://tappy-heartful.github.io/streak-connect-images/goods/${item}`} 
+                  src={`https://tappy-heartful.github.io/streak-images/connect/goods/${item}`} 
                   alt="Goods" 
                   className={styles.squareImg} 
                 />

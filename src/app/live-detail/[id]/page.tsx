@@ -110,7 +110,7 @@ const handleReserveClick = async () => {
 
   return (
     <main>
-      <section className="hero" style={{ "--hero-bg": 'url("https://tappy-heartful.github.io/streak-connect-images/background/live-detail.jpg")' } as any}>
+      <section className="hero" style={{ "--hero-bg": 'url("https://tappy-heartful.github.io/streak-images/connect/background/live-detail.jpg")' } as any}>
         <div className="hero-content">
           <h1 className="page-title">LIVE INFO</h1>
           <p className="tagline">Join our special performance</p>

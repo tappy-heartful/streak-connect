@@ -82,7 +82,7 @@ export default function TicketDetailPage() {
 
   return (
     <main>
-      <section className="hero" style={{ "--hero-bg": 'url("https://tappy-heartful.github.io/streak-connect-images/background/ticket-detail.jpg")' } as any}>
+      <section className="hero" style={{ "--hero-bg": 'url("https://tappy-heartful.github.io/streak-images/connect/background/ticket-detail.jpg")' } as any}>
         <div className="hero-content">
           <h1 className="page-title">TICKET</h1>
           <p className="tagline">Confirmation for Guests</p>

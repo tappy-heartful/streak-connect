@@ -60,7 +60,7 @@ export default function Header() {
               <img
                 src={
                   userData?.pictureUrl ||
-                  "https://tappy-heartful.github.io/streak-connect-images/line-profile-unset.png"
+                  "https://tappy-heartful.github.io/streak-images/connect/line-profile-unset.png"
                 }
                 alt="icon"
                 id="header-icon-img"
