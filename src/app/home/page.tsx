@@ -3,7 +3,16 @@
 import { useState, useEffect } from "react";
 import { db } from "@/src/lib/firebase";
 import { collection, query, orderBy, getDocs, limit } from "firebase/firestore";
-import { buildInstagramHtml, formatDateToYMDDot } from "@/src/lib/functions";
+import { 
+  buildInstagramHtml, 
+  formatDateToYMDDot, 
+  showSpinner, 
+  hideSpinner, 
+  showDialog, 
+  globalGetLineLoginUrl 
+} from "@/src/lib/functions";
+import { useAuth } from "@/src/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 // CSS Modulesをインポート
 import styles from "./home.module.css";
@@ -15,6 +24,9 @@ declare global {
 }
 
 export default function HomePage() {
+  const { user } = useAuth();
+  const router = useRouter();
+
   const [lives, setLives] = useState<any[]>([]);
   const [medias, setMedias] = useState<any[]>([]);
   const [loadingLives, setLoadingLives] = useState(true);
@@ -39,14 +51,11 @@ export default function HomePage() {
       try {
         const q = query(collection(db, "lives"), orderBy("date", "desc"));
         const snapshot = await getDocs(q);
-        
-        // 現在の日付を yyyy.MM.dd 形式で取得
         const todayStr = formatDateToYMDDot(new Date());
 
         const livesData = snapshot.docs
           .map(doc => ({ id: doc.id, ...doc.data() as any }))
-          .filter(live => live.date >= todayStr); // 過去のライブは非表示
-        
+          .filter(live => live.date >= todayStr);
         setLives(livesData);
       } catch (e) {
         console.error("Lives fetch error:", e);
@@ -83,15 +92,45 @@ export default function HomePage() {
     }
   }, [medias]);
 
-  // 予約ボタンの表示判定ロジック
+  // 予約ボタンクリック時の処理
+  const handleReserveClick = async (liveId: string) => {
+    if (!user) {
+      const ok = await showDialog("予約にはログインが必要です。\nログイン画面へ移動しますか？");
+      if (!ok) return;
+
+      try {
+        showSpinner();
+        // ログイン後に直接予約画面へ飛ぶように設定
+        const currentUrl = window.location.origin + '/ticket-reserve/' + liveId;
+        const fetchUrl = `${globalGetLineLoginUrl}&redirectAfterLogin=${encodeURIComponent(currentUrl)}`;
+
+        const res = await fetch(fetchUrl);
+        const { loginUrl } = await res.json();
+
+        if (loginUrl) {
+          window.location.href = loginUrl;
+        } else {
+          throw new Error("ログインURLの取得に失敗しました");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("ログイン処理中にエラーが発生しました。");
+      } finally {
+        hideSpinner();
+      }
+      return;
+    }
+
+    // ログイン済みの場合はそのまま予約画面へ
+    router.push(`/ticket-reserve/${liveId}`);
+  };
+
+  // 予約表示判定
   const canShowReserveBtn = (live: any) => {
     if (!live.isAcceptReserve) return false;
-
     const today = formatDateToYMDDot(new Date());
-    const start = live.acceptStartDate; // yyyy.MM.dd
-    const end = live.acceptEndDate;     // yyyy.MM.dd
-
-    // 開始日と終了日の範囲内かチェック（文字列のまま比較可能）
+    const start = live.acceptStartDate;
+    const end = live.acceptEndDate;
     return today >= start && today <= end;
   };
 
@@ -144,11 +183,14 @@ export default function HomePage() {
                         詳細 / VIEW INFO
                       </Link>
 
-                      {/* 予約ボタンの条件付きレンダリング */}
+                      {/* 予約ボタン (buttonとして実装) */}
                       {canShowReserveBtn(live) && (
-                        <Link href={`/ticket-reserve/${live.id}`} className={styles.btnReserve}>
+                        <button 
+                          onClick={() => handleReserveClick(live.id)} 
+                          className={styles.btnReserve}
+                        >
                           予約 / RESERVE TICKET
-                        </Link>
+                        </button>
                       )}
                     </div>
                   </div>
