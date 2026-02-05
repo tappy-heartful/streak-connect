@@ -96,7 +96,7 @@ export default function TicketReservePage() {
     const totalCount = resType === "invite" ? finalCompanions.length : finalCompanions.length + 1;
 
     if (totalCount === 0) {
-      await showDialog("予約人数が0名です。お名前を入力してください。", true);
+      await showDialog(`予約人数が0名です。${resType === "invite" ? "招待するお客様" : "代表者様、同伴者様"}を入力してください。`, true);
       return;
     }
 
@@ -252,9 +252,9 @@ export default function TicketReservePage() {
               )}
 
               <h3 className="sub-title">
-                {resType === "invite" ? "招待するお客様のお名前" : "同伴者様"}
+                {resType === "invite" ? "招待するお客様" : "同伴者様"}
               </h3>
-              <p className="form-note">※ニックネームや間柄でも構いません</p>
+              <p className="form-note">※個人情報保護のため「友達」、「親戚」などなるべくニックネームや間柄でご入力ください</p>
 
               {companions.map((name, index) => (
                 <div className="form-group" key={index}>
@@ -268,7 +268,7 @@ export default function TicketReservePage() {
                         newComps[index] = e.target.value;
                         setCompanions(newComps);
                       }} 
-                      placeholder="お名前を入力"
+                      placeholder="例：友達、親戚"
                     />
                     <span className="honorific">様</span>
                   </div>
