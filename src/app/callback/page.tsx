@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { auth, db } from "@/src/lib/firebase";
 import { signInWithCustomToken } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { showSpinner, hideSpinner, globalAuthServerRender, setSession } from "@/src/lib/functions";
+import { showSpinner, hideSpinner, globalLineLoginUrl, setSession } from "@/src/lib/functions";
 
 // --- メインのページコンポーネント ---
 export default function CallbackPage() {
@@ -37,7 +37,7 @@ function CallbackContent() {
       const redirectUri = window.location.origin + window.location.pathname;
 
       // 1. 自前サーバーでLINE認証
-      const res = await fetch(`${globalAuthServerRender}/line-login`, {
+      const res = await fetch(`${globalLineLoginUrl}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, state, redirectUri }),

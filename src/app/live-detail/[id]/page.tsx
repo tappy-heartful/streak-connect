@@ -7,7 +7,7 @@ import { db } from "@/src/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { 
   showSpinner, hideSpinner, showDialog, 
-  deleteTicket, formatDateToYMDDot , globalAuthServerRender,
+  deleteTicket, formatDateToYMDDot , globalGetLineLoginUrl,
 } from "@/src/lib/functions";
 import Link from "next/link";
 import "./live-detail.css";
@@ -72,9 +72,9 @@ const handleReserveClick = async () => {
         // 1. 現在のページの絶対URLを取得 (ログイン後に戻ってくる場所)
         const currentUrl = window.location.origin + '/ticket-reserve/' + id;
         
-        // 2. サーバーサイドの関数（globalAuthServerRender）からLINEログインURLを取得
+        // 2. サーバーサイドの関数からLINEログインURLを取得
         // redirectAfterLogin パラメータを付与することで、ログイン後の遷移先を指定する
-        const fetchUrl = `${globalAuthServerRender}/get-line-login-url?redirectAfterLogin=${encodeURIComponent(currentUrl)}`;
+        const fetchUrl = `${globalGetLineLoginUrl}&redirectAfterLogin=${encodeURIComponent(currentUrl)}`;
 
         const res = await fetch(fetchUrl);
         const { loginUrl } = await res.json();
