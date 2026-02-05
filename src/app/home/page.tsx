@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { db } from "@/src/lib/firebase";
 import { collection, query, orderBy, getDocs, limit } from "firebase/firestore";
-import { buildInstagramHtml } from "@/src/lib/functions";
+import { buildInstagramHtml, formatDateToYMDDot } from "@/src/lib/functions";
 import Link from "next/link";
 // CSS Modulesをインポート
 import styles from "./home.module.css";
@@ -39,10 +39,14 @@ export default function HomePage() {
       try {
         const q = query(collection(db, "lives"), orderBy("date", "desc"));
         const snapshot = await getDocs(q);
-        const todayStr = new Date().toISOString().split('T')[0].replace(/-/g, '.');
+        
+        // 現在の日付を yyyy.MM.dd 形式で取得
+        const todayStr = formatDateToYMDDot(new Date());
+
         const livesData = snapshot.docs
           .map(doc => ({ id: doc.id, ...doc.data() as any }))
-          .filter(live => live.date >= todayStr);
+          .filter(live => live.date >= todayStr); // 過去のライブは非表示
+        
         setLives(livesData);
       } catch (e) {
         console.error("Lives fetch error:", e);
@@ -78,6 +82,18 @@ export default function HomePage() {
       return () => clearTimeout(timer);
     }
   }, [medias]);
+
+  // 予約ボタンの表示判定ロジック
+  const canShowReserveBtn = (live: any) => {
+    if (!live.isAcceptReserve) return false;
+
+    const today = formatDateToYMDDot(new Date());
+    const start = live.acceptStartDate; // yyyy.MM.dd
+    const end = live.acceptEndDate;     // yyyy.MM.dd
+
+    // 開始日と終了日の範囲内かチェック（文字列のまま比較可能）
+    return today >= start && today <= end;
+  };
 
   return (
     <main>
@@ -122,12 +138,19 @@ export default function HomePage() {
                       <div><i className="fa-solid fa-ticket"></i> 前売：{live.advance}</div>
                       <div><i className="fa-solid fa-ticket"></i> 当日：{live.door}</div>
                     </div>
-                    <Link href={`/live-detail/${live.id}`} className={styles.btnDetail}>
-                      詳細 / VIEW INFO
-                    </Link>
-                    {/*TODO 検討中 <Link href={`/ticket-reserve/${live.id}`} className={styles.btnReserve}>
-                      予約 / RESERVE TICKET
-                    </Link> */}
+                    
+                    <div className={styles.liveActions}>
+                      <Link href={`/live-detail/${live.id}`} className={styles.btnDetail}>
+                        詳細 / VIEW INFO
+                      </Link>
+
+                      {/* 予約ボタンの条件付きレンダリング */}
+                      {canShowReserveBtn(live) && (
+                        <Link href={`/ticket-reserve/${live.id}`} className={styles.btnReserve}>
+                          予約 / RESERVE TICKET
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))
