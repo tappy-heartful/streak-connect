@@ -254,7 +254,7 @@ export default function TicketReservePage() {
               <h3 className="sub-title">
                 {resType === "invite" ? "招待するお客様のお名前" : "同伴者様"}
               </h3>
-              <p className="form-note">※ニックネームや間柄でも構いません</p>
+              <p className="form-note">※なるべくニックネームや間柄でご入力ください</p>
 
               {companions.map((name, index) => (
                 <div className="form-group" key={index}>
@@ -268,7 +268,7 @@ export default function TicketReservePage() {
                         newComps[index] = e.target.value;
                         setCompanions(newComps);
                       }} 
-                      placeholder="お名前を入力"
+                      placeholder="ニックネーム・間柄を入力"
                     />
                     <span className="honorific">様</span>
                   </div>
