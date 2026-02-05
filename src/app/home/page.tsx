@@ -3,7 +3,16 @@
 import { useState, useEffect } from "react";
 import { db } from "@/src/lib/firebase";
 import { collection, query, orderBy, getDocs, limit } from "firebase/firestore";
-import { buildInstagramHtml } from "@/src/lib/functions";
+import { 
+  buildInstagramHtml, 
+  formatDateToYMDDot, 
+  showSpinner, 
+  hideSpinner, 
+  showDialog, 
+  globalGetLineLoginUrl 
+} from "@/src/lib/functions";
+import { useAuth } from "@/src/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 // CSS Modulesをインポート
 import styles from "./home.module.css";
@@ -15,6 +24,9 @@ declare global {
 }
 
 export default function HomePage() {
+  const { user } = useAuth();
+  const router = useRouter();
+
   const [lives, setLives] = useState<any[]>([]);
   const [medias, setMedias] = useState<any[]>([]);
   const [loadingLives, setLoadingLives] = useState(true);
@@ -39,7 +51,8 @@ export default function HomePage() {
       try {
         const q = query(collection(db, "lives"), orderBy("date", "desc"));
         const snapshot = await getDocs(q);
-        const todayStr = new Date().toISOString().split('T')[0].replace(/-/g, '.');
+        const todayStr = formatDateToYMDDot(new Date());
+
         const livesData = snapshot.docs
           .map(doc => ({ id: doc.id, ...doc.data() as any }))
           .filter(live => live.date >= todayStr);
@@ -78,6 +91,48 @@ export default function HomePage() {
       return () => clearTimeout(timer);
     }
   }, [medias]);
+
+  // 予約ボタンクリック時の処理
+  const handleReserveClick = async (liveId: string) => {
+    if (!user) {
+      const ok = await showDialog("予約にはログインが必要です。\nログイン画面へ移動しますか？");
+      if (!ok) return;
+
+      try {
+        showSpinner();
+        // ログイン後に直接予約画面へ飛ぶように設定
+        const currentUrl = window.location.origin + '/ticket-reserve/' + liveId;
+        const fetchUrl = `${globalGetLineLoginUrl}&redirectAfterLogin=${encodeURIComponent(currentUrl)}`;
+
+        const res = await fetch(fetchUrl);
+        const { loginUrl } = await res.json();
+
+        if (loginUrl) {
+          window.location.href = loginUrl;
+        } else {
+          throw new Error("ログインURLの取得に失敗しました");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("ログイン処理中にエラーが発生しました。");
+      } finally {
+        hideSpinner();
+      }
+      return;
+    }
+
+    // ログイン済みの場合はそのまま予約画面へ
+    router.push(`/ticket-reserve/${liveId}`);
+  };
+
+  // 予約表示判定
+  const canShowReserveBtn = (live: any) => {
+    if (!live.isAcceptReserve) return false;
+    const today = formatDateToYMDDot(new Date());
+    const start = live.acceptStartDate;
+    const end = live.acceptEndDate;
+    return today >= start && today <= end;
+  };
 
   return (
     <main>
@@ -122,12 +177,22 @@ export default function HomePage() {
                       <div><i className="fa-solid fa-ticket"></i> 前売：{live.advance}</div>
                       <div><i className="fa-solid fa-ticket"></i> 当日：{live.door}</div>
                     </div>
-                    <Link href={`/live-detail/${live.id}`} className={styles.btnDetail}>
-                      詳細 / VIEW INFO
-                    </Link>
-                    {/*TODO 検討中 <Link href={`/ticket-reserve/${live.id}`} className={styles.btnReserve}>
-                      予約 / RESERVE TICKET
-                    </Link> */}
+                    
+                    <div className={styles.liveActions}>
+                      <Link href={`/live-detail/${live.id}`} className={styles.btnDetail}>
+                        詳細 / VIEW INFO
+                      </Link>
+
+                      {/* 予約ボタン (buttonとして実装) */}
+                      {canShowReserveBtn(live) && (
+                        <button 
+                          onClick={() => handleReserveClick(live.id)} 
+                          className={styles.btnReserve}
+                        >
+                          予約 / RESERVE TICKET
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))
