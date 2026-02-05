@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { globalAuthServerRender, showSpinner, hideSpinner } from "@/src/lib/functions";
+import { globalGetLineLoginUrl, showSpinner, hideSpinner } from "@/src/lib/functions";
 
 export default function Header() {
   const pathname = usePathname();
@@ -23,7 +23,7 @@ export default function Header() {
         showSpinner();
         // 現在のページをリダイレクト先に指定（ログイン後にここに戻るため）
         const currentUrl = window.location.href;
-        const fetchUrl = `${globalAuthServerRender}/get-line-login-url?redirectAfterLogin=${encodeURIComponent(currentUrl)}`;
+        const fetchUrl = `${globalGetLineLoginUrl}&redirectAfterLogin=${encodeURIComponent(currentUrl)}`;
 
         const res = await fetch(fetchUrl);
         const { loginUrl } = await res.json();
