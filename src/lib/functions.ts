@@ -29,6 +29,11 @@ export const globalAuthServerRender = 'https://streak-navi-auth-server-kz3v.onre
 export const globalGetLineLoginUrl = globalAuthServerRender + '/get-line-login-url?appType=next-connect';
 export const globalLineLoginUrl = globalAuthServerRender + '/line-login?appType=next-connect';
 
+
+// すでに CommonDialog.tsx で export していますが、
+// もし lib/functions.ts からも呼び出したい場合は再エクスポートしておくと便利です
+export { showDialog };
+
 // --- セッション管理 (localStorage/sessionStorage) ---
 const getStorageKey = (key: string) => `${globalAppName}.${key}`;
 
@@ -257,6 +262,31 @@ export async function deleteTicket(
   }
 }
 
-// すでに CommonDialog.tsx で export していますが、
-// もし lib/functions.ts からも呼び出したい場合は再エクスポートしておくと便利です
-export { showDialog };
+/**
+ * 画像プレビュー表示 (jQueryを使わず実装)
+ * @param url 表示したい画像のURL
+ */
+export function showImagePreview(url: string) {
+  if (typeof document === 'undefined') return;
+
+  // すでに開いている場合は一旦削除（重複防止）
+  const existing = document.getElementById('image-preview-overlay');
+  if (existing) existing.remove();
+
+  // オーバーレイの作成
+  const overlay = document.createElement('div');
+  overlay.id = 'image-preview-overlay';
+  
+  // スタイルはCSSファイル（globals.css等）に書くのが理想ですが、
+  // ここで直接指定することも可能です。
+  overlay.innerHTML = `
+    <div class="image-preview-content">
+      <img src="${url}" alt="Preview">
+    </div>
+  `;
+
+  // クリックで削除
+  overlay.onclick = () => overlay.remove();
+
+  document.body.appendChild(overlay);
+}

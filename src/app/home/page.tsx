@@ -9,7 +9,8 @@ import {
   showSpinner, 
   hideSpinner, 
   showDialog, 
-  globalGetLineLoginUrl 
+  globalGetLineLoginUrl ,
+  showImagePreview
 } from "@/src/lib/functions";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useRouter } from "next/navigation";
@@ -45,6 +46,26 @@ export default function HomePage() {
   ];
 
   const goodsItems = ['item1.jpg', 'item2.jpg', 'item3.jpg', 'item4.jpg'];
+
+// PHOTOS セクション用の設定
+  const imageMap: { [key: number]: number } = {
+    1: 2,
+    2: 5,
+    3: 4,
+    4: 5,
+    5: 4,
+    6: 2,
+  };
+
+  // imageMapを元に、全ファイル名の配列を生成
+  // 例: ["1_1.jpg", "1_2.jpg", "2_1.jpg", ...]
+  const activityPhotos = Object.entries(imageMap).flatMap(([n, maxM]) => {
+    const photos = [];
+    for (let m = 1; m <= maxM; m++) {
+      photos.push(`${n}_${m}.jpg`);
+    }
+    return photos;
+  });
 
   useEffect(() => {
     async function fetchLives() {
@@ -92,7 +113,6 @@ export default function HomePage() {
     }
   }, [medias]);
 
-  // 予約ボタンクリック時の処理
   const handleReserveClick = async (liveId: string) => {
     if (!user) {
       const ok = await showDialog("予約にはログインが必要です。\nログイン画面へ移動しますか？");
@@ -100,7 +120,6 @@ export default function HomePage() {
 
       try {
         showSpinner();
-        // ログイン後に直接予約画面へ飛ぶように設定
         const currentUrl = window.location.origin + '/ticket-reserve/' + liveId;
         const fetchUrl = `${globalGetLineLoginUrl}&redirectAfterLogin=${encodeURIComponent(currentUrl)}`;
 
@@ -120,12 +139,9 @@ export default function HomePage() {
       }
       return;
     }
-
-    // ログイン済みの場合はそのまま予約画面へ
     router.push(`/ticket-reserve/${liveId}`);
   };
 
-  // 予約表示判定
   const canShowReserveBtn = (live: any) => {
     if (!live.isAcceptReserve) return false;
     const today = formatDateToYMDDot(new Date());
@@ -182,8 +198,6 @@ export default function HomePage() {
                       <Link href={`/live-detail/${live.id}`} className={styles.btnDetail}>
                         詳細 / VIEW INFO
                       </Link>
-
-                      {/* 予約ボタン (buttonとして実装) */}
                       {canShowReserveBtn(live) && (
                         <button 
                           onClick={() => handleReserveClick(live.id)} 
@@ -307,6 +321,28 @@ export default function HomePage() {
                 </div>
               ))
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* PHOTOS (imageMapに基づいて動的生成) */}
+      <section className="content-section">
+        <div className="inner">
+          <h2 className="section-title">PHOTOS</h2>
+          <div className={styles.photoGrid}>
+          {activityPhotos.map((fileName) => {
+            const url = `https://tappy-heartful.github.io/streak-images/connect/photos/${fileName}`;
+            return (
+              <div 
+                key={fileName} 
+                className={styles.photoItem}
+                onClick={() => showImagePreview(url)} // 追加した関数を呼ぶ
+                style={{ cursor: 'zoom-in' }}
+              >
+                <img src={url} alt="Activity" className={styles.activityPhoto} />
+              </div>
+            );
+          })}
           </div>
         </div>
       </section>
