@@ -50,7 +50,7 @@ export default function HomePage() {
 // PHOTOS セクション用の設定
   const imageMap: { [key: number]: number } = {
     1: 2,
-    2: 5,
+    2: 6,
     3: 4,
     4: 5,
     5: 4,
