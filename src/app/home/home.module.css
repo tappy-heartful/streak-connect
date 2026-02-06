@@ -529,3 +529,46 @@
     width: 60%;
   }
 }
+
+
+
+/* PHOTOS Section Styles */
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 1行に3枚 */
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.photoItem {
+  width: 100%;
+  aspect-ratio: 4 / 3; /* 画像のアスペクト比を統一（必要に応じて1/1などに変更可） */
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #333; /* 読み込み前のプレースホルダ色 */
+}
+
+.activityPhoto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 枠いっぱいに表示 */
+  transition: transform 0.3s ease;
+}
+
+.photoItem:hover .activityPhoto {
+  transform: scale(1.05); /* ホバー時に少しズーム */
+}
+
+/* スマホ対応: 1行に2枚にするか1枚にする場合 */
+@media (max-width: 768px) {
+  .photoGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .photoGrid {
+    grid-template-columns: 1fr;
+  }
+}
