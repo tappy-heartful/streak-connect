@@ -101,9 +101,23 @@
   }
 }
 
+/* Linkタグ用のラッパー：ここが崩れ防止の肝です */
+.ticketImgLink {
+  display: block; /* ブロック化して幅を占有させる */
+  width: 100%;
+  text-decoration: none;
+}
+
+@media (min-width: 768px) {
+  .ticketImgLink {
+    width: 35%; /* 親のカードに対して35%の幅を確保 */
+  }
+}
+
 .ticketImgWrapper {
   position: relative;
   width: 100%;
+  height: 100%; /* Linkの高さに合わせる */
   aspect-ratio: 16/9;
   background: #222;
   overflow: hidden;
@@ -112,8 +126,7 @@
 
 @media (min-width: 768px) {
   .ticketImgWrapper {
-    width: 35%;
-    aspect-ratio: auto;
+    aspect-ratio: auto; /* 横並び時はLinkの高さに追従 */
   }
 }
 
