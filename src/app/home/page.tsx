@@ -15,7 +15,6 @@ import {
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-// CSS Modulesをインポート
 import styles from "./home.module.css";
 
 declare global {
@@ -122,10 +121,8 @@ export default function HomePage() {
         showSpinner();
         const currentUrl = window.location.origin + '/ticket-reserve/' + liveId;
         const fetchUrl = `${globalGetLineLoginUrl}&redirectAfterLogin=${encodeURIComponent(currentUrl)}`;
-
         const res = await fetch(fetchUrl);
         const { loginUrl } = await res.json();
-
         if (loginUrl) {
           window.location.href = loginUrl;
         } else {
@@ -177,13 +174,18 @@ export default function HomePage() {
             ) : (
               lives.map((live) => (
                 <div key={live.id} className={styles.ticketCard}>
-                  <div className={styles.ticketImgWrapper}>
-                    <img 
-                      src={live.flyerUrl || 'https://tappy-heartful.github.io/streak-images/connect/favicon.png'} 
-                      className={styles.ticketImg} 
-                      alt="flyer" 
-                    />
-                  </div>
+                  {/* フライヤー全体をLinkで包む */}
+                  <Link href={`/live-detail/${live.id}`} className={styles.ticketImgLink}>
+                    <div className={styles.ticketImgWrapper}>
+                      <img 
+                        src={live.flyerUrl || 'https://tappy-heartful.github.io/streak-images/connect/favicon.png'} 
+                        className={styles.ticketImg} 
+                        alt="flyer" 
+                      />
+                      <div className={styles.imgOverlay}>VIEW INFO</div>
+                    </div>
+                  </Link>
+                  
                   <div className={styles.ticketInfo}>
                     <div className={styles.tDate}>{live.date}</div>
                     <h3 className={styles.tTitle}>{live.title}</h3>
@@ -325,7 +327,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* PHOTOS (imageMapに基づいて動的生成) */}
+      {/* PHOTOS */}
       <section className="content-section">
         <div className="inner">
           <h2 className="section-title">PHOTOS</h2>
@@ -336,7 +338,7 @@ export default function HomePage() {
               <div 
                 key={fileName} 
                 className={styles.photoItem}
-                onClick={() => showImagePreview(url)} // 追加した関数を呼ぶ
+                onClick={() => showImagePreview(url)}
                 style={{ cursor: 'zoom-in' }}
               >
                 <img src={url} alt="Activity" className={styles.activityPhoto} />
