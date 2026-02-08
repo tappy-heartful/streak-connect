@@ -51,7 +51,7 @@ export default function HomePage() {
   const imageMap: { [key: number]: number } = {
     1: 2,
     2: 4,
-    3: 4,
+    3: 3,
     4: 5,
     5: 4,
     6: 2,
