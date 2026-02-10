@@ -222,10 +222,10 @@ export default function HomePage() {
         <div className="inner">
           <h2 className="section-title">Concept</h2>
           <div className={styles.conceptBody}>
-            <p className={styles.conceptLead}>Swingは続く...</p>
+            {/* <p className={styles.conceptLead}>Swingは続く...</p> */}
             <div className={styles.conceptText}>
-              <p>Swing Streak Jazz Orchestra（SSJO）は、2022年に結成されました。</p>
-              <p>現役時代に築いた関係性が、これからも絶えることなく続いていきますように。</p>
+              <p>愛媛大学のジャズ研究会「Sound Solution Orchestra」のOBOGを中心に、主に20代の若手メンバーで構成するビッグバンドです。</p>
+              <p>世代を超えて愛されてきたスタンダードナンバーを中心に、ビッグバンドならではの迫力ある演奏で、ジャズが初めての方でも親しみやすいステージをお届けしています！</p>
             </div>
           </div>
         </div>
