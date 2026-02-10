@@ -230,7 +230,8 @@ export default function TicketReservePage() {
 
               {resType === "general" && (
                 <div className="form-group">
-                  <label>代表者氏名 <span className="required">必須</span></label>
+                  <label>代表者名 <span className="required">必須</span></label>
+                  <p className="form-note">※個人情報保護の観点から、本名でなくても構いません</p>
                   <div className="input-row">
                     <input 
                       type="text" 
