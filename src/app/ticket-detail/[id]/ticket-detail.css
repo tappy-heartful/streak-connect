@@ -162,16 +162,28 @@
     object-fit: contain;
 }
 
+/* QRコードを白背景のパネルとして独立させる */
 .qr-wrapper {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: center;    /* 💡 これで中身を水平中央寄せにする */
+    justify-content: center; /* 垂直方向も中央に */
     margin: 20px 0 30px;
-    padding: 20px;
+    padding: 30px 20px;
     background: #111;
     border-radius: 12px;
-    border: 1px dashed #333;
+    border: 1px solid #333;
+}
+
+.qrcode-container {
+    background: #ffffff;
+    padding: 10px;
+    border-radius: 4px;
+    display: flex;          /* 💡 中のSVGも中央に固定 */
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    margin: 0 auto;         /* 念のための自動マージン */
 }
 
 .qr-note {
