@@ -120,10 +120,11 @@ export default function TicketDetailPage() {
               <div className="qrcode-container">
                 <QRCodeSVG 
                   value={id as string} 
-                  size={160} 
-                  bgColor={"#1a1a1a"} 
-                  fgColor={"#ffffff"} 
-                  level={"H"}
+                  size={180}            // 少し大きく
+                  bgColor={"#ffffff"}   // 背景は白（必須）
+                  fgColor={"#000000"}   // セルは黒（必須）
+                  level={"M"}           // 密度を下げる（M または L）
+                  marginSize={4}        // 💡 includeMarginの代わりにこれを使用（セルの4個分程度の余白）
                 />
               </div>
               <p className="qr-note">FOR ENTRANCE CHECK-IN</p>
