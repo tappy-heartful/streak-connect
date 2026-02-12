@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation"; // useSearchParamsを追加
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { db } from "@/src/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -16,7 +16,7 @@ import "./ticket-detail.css";
 export default function TicketDetailPage() {
   const { id } = useParams();
   const searchParams = useSearchParams();
-  const groupIndexParam = searchParams.get("g"); // ?g=1 などを取得
+  const groupIndexParam = searchParams.get("g"); 
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -24,7 +24,6 @@ export default function TicketDetailPage() {
   const [live, setLive] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
 
-  // 招待客用モードかどうか（URLにgパラメータがある）
   const isGuestView = !!groupIndexParam;
 
   useEffect(() => {
@@ -86,6 +85,27 @@ export default function TicketDetailPage() {
   const isPast = live.date < todayStr;
   const canModify = !isPast && live.isAcceptReserve;
 
+  // 共通のライブ情報＋注意事項コンポーネント
+  const LiveInfoBox = () => (
+    <div className="ticket-info">
+      <div className="t-date">{live.date}</div>
+      <Link href={`/live-detail/${ticket.liveId}`} className="t-title-link">
+        <h3 className="t-title">{live.title}</h3>
+      </Link>
+      <div className="t-details">
+        <p><i className="fa-solid fa-location-dot"></i> 会場: {live.venue}</p>
+        <p><i className="fa-solid fa-clock"></i> Open {live.open} / Start {live.start}</p>
+        <p><i className="fa-solid fa-ticket"></i> 前売料金: {live.advance}</p>
+      </div>
+      {/* ライブの注意事項をライブ情報のすぐ下に表示 */}
+      {live.notes && (
+        <div className="live-notes-box mini-notes">
+          {live.notes}
+        </div>
+      )}
+    </div>
+  );
+
   // 招待グループのレンダリング関数
   const renderInviteGroupCard = (group: any, index: number) => {
     const groupUrl = `${window.location.origin}/ticket-detail/${id}?g=${index + 1}`;
@@ -100,9 +120,9 @@ export default function TicketDetailPage() {
           <div className="res-no-display">
             <span className="res-no-value">{group.reservationNo || "----"}</span>
           </div>
-            <button className="btn-copy-no" onClick={() => copyToClipboard(groupUrl, true)}>
-              <i className="fa-solid fa-link"></i> <span>COPY</span>
-            </button>
+          <button className="btn-copy-no" onClick={() => copyToClipboard(groupUrl, true)}>
+            <i className="fa-solid fa-link"></i> <span>COPY</span>
+          </button>
         </div>
 
         <div className="qr-wrapper">
@@ -119,17 +139,8 @@ export default function TicketDetailPage() {
           <p className="qr-note">FOR ENTRANCE CHECK-IN</p>
         </div>
 
-        <div className="ticket-info">
-          <div className="t-date">{live.date}</div>
-          <Link href={`/live-detail/${ticket.liveId}`} className="t-title-link">
-          <h3 className="t-title">{live.title}</h3>
-          </Link>
-          <div className="t-details">
-            <p><i className="fa-solid fa-location-dot"></i> 会場: {live.venue}</p>
-            <p><i className="fa-solid fa-clock"></i> Open {live.open} / Start {live.start}</p>
-            <p><i className="fa-solid fa-ticket"></i> 前売料金: {live.advance}</p>
-          </div>
-        </div>
+        {/* ライブ情報 & 注意事項 */}
+        <LiveInfoBox />
 
         <div className="group-guests">
           <p className="group-guests-label">ご招待客リスト</p>
@@ -157,13 +168,13 @@ export default function TicketDetailPage() {
 
       <section className="content-section">
         <div className="inner">
-            <nav className="breadcrumb">
-              <Link href="/">Home</Link>
-              <span className="separator">&gt;</span>
-              <Link href={`/live-detail/${ticket.liveId}`}>Live Detail</Link>
-              <span className="separator">&gt;</span>
-              <span className="current">Ticket</span>
-            </nav>
+          <nav className="breadcrumb">
+            <Link href="/">Home</Link>
+            <span className="separator">&gt;</span>
+            <Link href={`/live-detail/${ticket.liveId}`}>Live Detail</Link>
+            <span className="separator">&gt;</span>
+            <span className="current">Ticket</span>
+          </nav>
 
           <p className="ticket-guide-text">
             {ticket.resType === 'invite' && isOwner && !isGuestView
@@ -175,14 +186,12 @@ export default function TicketDetailPage() {
           {ticket.resType === 'invite' && ticket.groups ? (
             <div className="invite-groups-container">
               {isGuestView ? (
-                // 招待客用：指定されたインデックスのグループのみ表示
                 (() => {
                   const idx = parseInt(groupIndexParam as string) - 1;
                   const g = ticket.groups[idx];
                   return g ? renderInviteGroupCard(g, idx) : <p>ご招待情報が見つかりません</p>;
                 })()
               ) : (
-                // 所有者用：全グループ表示
                 ticket.groups.map((g: any, i: number) => renderInviteGroupCard(g, i))
               )}
             </div>
@@ -194,9 +203,9 @@ export default function TicketDetailPage() {
                 <div className="res-no-display">
                   <span className="res-no-value">{ticket.reservationNo || "----"}</span>
                 </div>
-                  <button className="btn-copy-no" onClick={handleCopyUrl}>
-                    <i className="fa-solid fa-link"></i> <span>COPY</span>
-                  </button>
+                <button className="btn-copy-no" onClick={handleCopyUrl}>
+                  <i className="fa-solid fa-link"></i> <span>COPY</span>
+                </button>
               </div>
 
               <div className="qr-wrapper">
@@ -213,30 +222,11 @@ export default function TicketDetailPage() {
                 <p className="qr-note">FOR ENTRANCE CHECK-IN</p>
               </div>
 
-              <div className="ticket-info">
-                <div className="t-date">{live.date}</div>
-                <Link href={`/live-detail/${ticket.liveId}`} className="t-title-link">
-                  <h3 className="t-title">{live.title}</h3>
-                </Link>
-                <div className="t-details">
-                  <p><i className="fa-solid fa-location-dot"></i> 会場: {live.venue}</p>
-                  <p><i className="fa-solid fa-clock"></i> Open {live.open} / Start {live.start}</p>
-                  <p><i className="fa-solid fa-ticket"></i> 前売料金: {live.advance}</p>
-                </div>
-              </div>
+              {/* ライブ情報 & 注意事項 */}
+              <LiveInfoBox />
             </div>
           )}
 
-          {/* ライブの注意事項 */}
-          {live.notes && (
-            <div className="notes-section">
-              <div className="live-notes-box">
-                {live.notes}
-              </div>
-            </div>
-          )}
-
-          {/* 招待客用モードの時は「予約担当者名」などの詳細情報を少し抑えめ、または非表示にする */}
           <div className="share-info-wrapper">
             <p className="res-type-label-small">
               {ticket.resType === 'invite' ? 'INVITATION (招待枠)' : 'GENERAL RESERVATION (一般予約)'}
@@ -306,11 +296,11 @@ export default function TicketDetailPage() {
         </div>
       </section>
 
-        <div className="page-actions">
-          <Link href={`/live-detail/${ticket.liveId}`} className="btn-back-home">
-            ← Live情報に戻る
-          </Link>
-        </div>
+      <div className="page-actions">
+        <Link href={`/live-detail/${ticket.liveId}`} className="btn-back-home">
+          ← Live情報に戻る
+        </Link>
+      </div>
     </main>
   );
 }
