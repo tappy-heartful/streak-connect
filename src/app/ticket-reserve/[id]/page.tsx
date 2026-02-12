@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { db } from "@/src/lib/firebase";
 import { 
-  doc, getDoc, runTransaction, serverTimestamp 
+  doc, getDoc, runTransaction, serverTimestamp, deleteField 
 } from "firebase/firestore";
 import { 
   showSpinner, hideSpinner, showDialog, 
@@ -71,9 +71,8 @@ export default function TicketReservePage() {
       const memberStatus = userSnap.exists();
       setIsMember(memberStatus);
       
-      // デフォルトの予約種別設定
-      const initialResType = memberStatus ? "invite" : "general";
-      setResType(initialResType);
+      // 切り替え時にすぐ入力欄が出るよう、常に maxComp 分の空配列を準備しておく
+      const emptyCompanions = Array(maxComp).fill("");
 
       // 既存予約の取得
       const ticketId = `${id}_${user!.uid}`;
@@ -83,35 +82,41 @@ export default function TicketReservePage() {
       if (ticketSnap.exists()) {
         const tData = ticketSnap.data();
         setExistingTicket(tData);
-        setResType(tData.resType || initialResType);
+        setResType(tData.resType || (memberStatus ? "invite" : "general"));
 
-        if (tData.resType === "invite") {
-          // 招待予約の復元
-          if (tData.groups && tData.groups.length > 0) {
-            setInviteGroups(tData.groups);
-          } else {
-            // 旧データからの移行対応
-            setInviteGroups([{
-              groupName: "ご招待客",
-              companions: tData.companions || Array(maxComp).fill(""),
-              reservationNo: tData.reservationNo + "-1"
-            }]);
-          }
-        } else {
-          // 一般予約の復元
-          setRepresentativeName(tData.representativeName || "");
-          const newComps = Array(maxComp).fill("");
-          (tData.companions || []).forEach((name: string, i: number) => {
-            if (i < maxComp) newComps[i] = name;
+        // 一般予約データの復元と補完
+        setRepresentativeName(tData.representativeName || "");
+        const restoredGeneral = [...emptyCompanions];
+        (tData.companions || []).forEach((name: string, i: number) => {
+          if (i < maxComp) restoredGeneral[i] = name;
+        });
+        setGeneralCompanions(restoredGeneral);
+
+        // 招待予約データの復元と補完
+        if (tData.groups && tData.groups.length > 0) {
+          const restoredGroups = tData.groups.map((g: any) => {
+            const paddedCompanions = [...emptyCompanions];
+            (g.companions || []).forEach((name: string, i: number) => {
+              if (i < maxComp) paddedCompanions[i] = name;
+            });
+            return { ...g, companions: paddedCompanions };
           });
-          setGeneralCompanions(newComps);
+          setInviteGroups(restoredGroups);
+        } else {
+          // 旧データや一般データからの切り替え用に初期化
+          setInviteGroups([{
+            groupName: tData.resType === "invite" ? "ご招待客" : "",
+            companions: [...restoredGeneral], // 既存の同伴者がいれば引き継ぐ
+            reservationNo: tData.reservationNo ? `${tData.reservationNo}-1` : undefined
+          }]);
         }
       } else {
-        // 新規予約時の初期化
-        setGeneralCompanions(Array(maxComp).fill(""));
+        // 新規予約時の完全初期化
+        setResType(memberStatus ? "invite" : "general");
+        setGeneralCompanions([...emptyCompanions]);
         setInviteGroups([{
           groupName: "",
-          companions: Array(maxComp).fill("")
+          companions: [...emptyCompanions]
         }]);
       }
 
@@ -123,13 +128,12 @@ export default function TicketReservePage() {
     }
   };
 
-  // グループ追加
+  // グループ追加時の最大人数保証
   const addGroup = () => {
-    const maxComp = live.maxCompanions || 0;
+    const maxComp = live?.maxCompanions || 0;
     setInviteGroups([...inviteGroups, { groupName: "", companions: Array(maxComp).fill("") }]);
   };
 
-  // グループ削除
   const removeGroup = (index: number) => {
     if (inviteGroups.length <= 1) return;
     const newGroups = [...inviteGroups];
@@ -148,14 +152,13 @@ export default function TicketReservePage() {
       cleanedGeneralCompanions = generalCompanions.filter(n => n.trim() !== "");
       totalCount = cleanedGeneralCompanions.length + 1;
     } else {
-      // 招待予約の集計
       inviteGroups.forEach(g => {
         const c = g.companions.filter(n => n.trim() !== "");
         if (g.groupName.trim() !== "" || c.length > 0) {
           cleanedGroups.push({
-            groupName: g.groupName || "名称未設定グループ",
+            groupName: g.groupName.trim() || "名称未設定グループ",
             companions: c,
-            reservationNo: g.reservationNo // 既存があれば維持
+            reservationNo: g.reservationNo
           });
           totalCount += c.length;
         }
@@ -187,10 +190,10 @@ export default function TicketReservePage() {
           throw new Error("完売または残席不足です。");
         }
 
-        // 予約番号の発行ロジック
         const baseNo = existingTicket?.reservationNo?.split('-')[0] || 
                        Math.floor(1000 + Math.random() * 9000).toString();
 
+        // ベースとなるデータ
         const ticketData: any = {
           liveId: id,
           uid: user!.uid,
@@ -205,14 +208,18 @@ export default function TicketReservePage() {
           ticketData.companions = cleanedGeneralCompanions;
           ticketData.companionCount = cleanedGeneralCompanions.length;
           ticketData.reservationNo = baseNo;
+          // 招待予約側のデータを削除
+          ticketData.groups = deleteField();
         } else {
           ticketData.representativeName = userData?.displayName || "メンバー";
-          // グループごとに枝番を振る
           ticketData.groups = cleanedGroups.map((g, i) => ({
             ...g,
             reservationNo: g.reservationNo || `${baseNo}-${i + 1}`
           }));
-          ticketData.reservationNo = baseNo; // 親番号としても保持
+          ticketData.reservationNo = baseNo;
+          // 一般予約側のデータを削除
+          ticketData.companions = deleteField();
+          ticketData.companionCount = deleteField();
         }
 
         if (!existingTicket) {
@@ -262,7 +269,6 @@ export default function TicketReservePage() {
             <span className="current">Reserve</span>
           </nav>
 
-          {/* ライブ詳細カード（既存維持） */}
           <div className="ticket-card detail-mode">
             <div className="ticket-info">
               <div className="t-date">{live.date}</div>
@@ -303,6 +309,7 @@ export default function TicketReservePage() {
                 </div>
               )}
 
+              {/* --- 一般予約フォーム --- */}
               {resType === "general" && (
                 <>
                   <div className="form-group">
@@ -344,7 +351,7 @@ export default function TicketReservePage() {
                 </>
               )}
 
-              {/* --- 招待予約フォーム (グループ対応版) --- */}
+              {/* --- 招待予約フォーム --- */}
               {resType === "invite" && (
                 <>
                   <div className="form-group">
@@ -353,7 +360,7 @@ export default function TicketReservePage() {
                   </div>
 
                   <h3 className="sub-title">招待グループ設定</h3>
-                  <p className="form-note">招待するグループごとに名前を分けて登録できます（例：地元の友達、家族など）。URLやQRコードはグループごとに発行されます。</p>
+                  <p className="form-note">招待するグループごとに名前を分けて登録できます。URLやQRコードはグループごとに発行されます。</p>
 
                   {inviteGroups.map((group, gIndex) => (
                     <div className="group-container" key={gIndex}>
@@ -382,7 +389,7 @@ export default function TicketReservePage() {
                       </div>
 
                       {group.companions.map((name, cIndex) => (
-                        <div className="form-group" key={cIndex} style={{marginLeft: '20px'}}>
+                        <div className="form-group guest-input-group" key={cIndex}>
                           <label>ゲスト {cIndex + 1}</label>
                           <div className="input-row">
                             <input 
@@ -410,7 +417,6 @@ export default function TicketReservePage() {
                 </>
               )}
 
-              {/* ライブ側からの注意事項（既存維持） */}
               {live.notes && (
                 <div className="live-notes-area">
                   <p className="live-notes-text">{live.notes}</p>
