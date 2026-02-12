@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation"; // useSearchParamsを追加
 import { useAuth } from "@/src/contexts/AuthContext";
 import { db } from "@/src/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -10,17 +10,22 @@ import {
   deleteTicket, formatDateToYMDDot 
 } from "@/src/lib/functions";
 import Link from "next/link";
-import { QRCodeSVG } from "qrcode.react"; // QRコードライブラリ
+import { QRCodeSVG } from "qrcode.react";
 import "./ticket-detail.css";
 
 export default function TicketDetailPage() {
-  const { id } = useParams(); // URLパラメータ [id] (チケットドキュメントID)
+  const { id } = useParams();
+  const searchParams = useSearchParams();
+  const groupIndexParam = searchParams.get("g"); // ?g=1 などを取得
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [ticket, setTicket] = useState<any>(null);
   const [live, setLive] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
+
+  // 招待客用モードかどうか（URLにgパラメータがある）
+  const isGuestView = !!groupIndexParam;
 
   useEffect(() => {
     if (!id) return;
@@ -55,7 +60,6 @@ export default function TicketDetailPage() {
     }
   };
 
-  // 指定されたURLをコピーする汎用関数
   const copyToClipboard = async (url: string, isGroup = false) => {
     await navigator.clipboard.writeText(url);
     const msg = isGroup
@@ -84,23 +88,21 @@ export default function TicketDetailPage() {
 
   // 招待グループのレンダリング関数
   const renderInviteGroupCard = (group: any, index: number) => {
-    // 招待用URL（共有用）
     const groupUrl = `${window.location.origin}/ticket-detail/${id}?g=${index + 1}`;
-    // QRコードの中身（チケットID + グループのインデックス）
     const qrValue = `${id}_g${index + 1}`;
     
     return (
       <div key={index} className="ticket-card detail-mode invite-group-card">
-        <div className="group-name-badge">{group.groupName} 様</div>
+        <div className="group-name-badge">{group.groupName} のみなさま</div>
         
         <div className="res-no-wrapper">
           <span className="res-no-label">RESERVATION NO.</span>
           <div className="res-no-display">
             <span className="res-no-value">{group.reservationNo || "----"}</span>
           </div>
-          <button className="btn-copy-no" onClick={() => copyToClipboard(groupUrl, true)}>
-            <i className="fa-solid fa-link"></i> <span>COPY</span>
-          </button>
+            <button className="btn-copy-no" onClick={() => copyToClipboard(groupUrl, true)}>
+              <i className="fa-solid fa-link"></i> <span>COPY</span>
+            </button>
         </div>
 
         <div className="qr-wrapper">
@@ -117,11 +119,10 @@ export default function TicketDetailPage() {
           <p className="qr-note">FOR ENTRANCE CHECK-IN</p>
         </div>
 
-        {/* 招待予約カード内にもライブ情報を表示 */}
         <div className="ticket-info">
           <div className="t-date">{live.date}</div>
           <Link href={`/live-detail/${ticket.liveId}`} className="t-title-link">
-            <h3 className="t-title">{live.title}</h3>
+          <h3 className="t-title">{live.title}</h3>
           </Link>
           <div className="t-details">
             <p><i className="fa-solid fa-location-dot"></i> 会場: {live.venue}</p>
@@ -156,35 +157,46 @@ export default function TicketDetailPage() {
 
       <section className="content-section">
         <div className="inner">
-          <nav className="breadcrumb">
-            <Link href="/">Home</Link>
-            <span className="separator">&gt;</span>
-            <Link href={`/live-detail/${ticket.liveId}`}>Live Detail</Link>
-            <span className="separator">&gt;</span>
-            <span className="current">Ticket</span>
-          </nav>
+            <nav className="breadcrumb">
+              <Link href="/">Home</Link>
+              <span className="separator">&gt;</span>
+              <Link href={`/live-detail/${ticket.liveId}`}>Live Detail</Link>
+              <span className="separator">&gt;</span>
+              <span className="current">Ticket</span>
+            </nav>
 
           <p className="ticket-guide-text">
-            {ticket.resType === 'invite' && isOwner
-              ? '招待する各グループのお客様に予約情報を共有してください！'
-              : '当日はこの画面を会場受付にてご提示ください！'}
+            {ticket.resType === 'invite' && isOwner && !isGuestView
+              ? '予約番号右のCOPYボタンより、各グループのお客様にチケットを共有してください！'
+              : '当日は会場受付にてこの画面をご提示ください！'}
           </p>
 
           {/* --- チケット表示エリア --- */}
           {ticket.resType === 'invite' && ticket.groups ? (
             <div className="invite-groups-container">
-              {ticket.groups.map((g: any, i: number) => renderInviteGroupCard(g, i))}
+              {isGuestView ? (
+                // 招待客用：指定されたインデックスのグループのみ表示
+                (() => {
+                  const idx = parseInt(groupIndexParam as string) - 1;
+                  const g = ticket.groups[idx];
+                  return g ? renderInviteGroupCard(g, idx) : <p>ご招待情報が見つかりません</p>;
+                })()
+              ) : (
+                // 所有者用：全グループ表示
+                ticket.groups.map((g: any, i: number) => renderInviteGroupCard(g, i))
+              )}
             </div>
           ) : (
+            // 一般予約
             <div className="ticket-card detail-mode">
               <div className="res-no-wrapper">
                 <span className="res-no-label">RESERVATION NO.</span>
                 <div className="res-no-display">
                   <span className="res-no-value">{ticket.reservationNo || "----"}</span>
                 </div>
-                <button className="btn-copy-no" onClick={handleCopyUrl}>
-                  <i className="fa-solid fa-link"></i> <span>COPY</span>
-                </button>
+                  <button className="btn-copy-no" onClick={handleCopyUrl}>
+                    <i className="fa-solid fa-link"></i> <span>COPY</span>
+                  </button>
               </div>
 
               <div className="qr-wrapper">
@@ -224,6 +236,7 @@ export default function TicketDetailPage() {
             </div>
           )}
 
+          {/* 招待客用モードの時は「予約担当者名」などの詳細情報を少し抑えめ、または非表示にする */}
           <div className="share-info-wrapper">
             <p className="res-type-label-small">
               {ticket.resType === 'invite' ? 'INVITATION (招待枠)' : 'GENERAL RESERVATION (一般予約)'}
@@ -231,7 +244,9 @@ export default function TicketDetailPage() {
             <h3 className="sub-title">ご予約情報</h3>
             <div className="t-details">
               <p><i className="fa-solid fa-user-check"></i> {ticket.resType === 'invite' ? '予約担当' : '代表者'}: {ticket.representativeName} 様</p>
-              <p><i className="fa-solid fa-users"></i> 合計人数: {ticket.totalCount || 1} 名</p>
+              {!isGuestView && (
+                <p><i className="fa-solid fa-users"></i> 合計人数: {ticket.totalCount || 1} 名</p>
+              )}
             </div>
 
             {ticket.resType !== 'invite' && (
@@ -291,11 +306,11 @@ export default function TicketDetailPage() {
         </div>
       </section>
 
-      <div className="page-actions">
-        <Link href={`/live-detail/${ticket.liveId}`} className="btn-back-home">
-          ← Live情報に戻る
-        </Link>
-      </div>
+        <div className="page-actions">
+          <Link href={`/live-detail/${ticket.liveId}`} className="btn-back-home">
+            ← Live情報に戻る
+          </Link>
+        </div>
     </main>
   );
 }
