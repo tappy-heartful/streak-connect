@@ -11,9 +11,15 @@ import {
   formatDateToYMDDot 
 } from "@/src/lib/functions";
 import Link from "next/link";
-import "./mypage.css"; // ← これが必要です！
+import "./mypage.css";
 
-// 型定義
+// 型定義の更新
+interface TicketGroup {
+  groupName: string;
+  reservationNo: string;
+  companions: string[];
+}
+
 interface Ticket {
   id: string;
   liveId: string;
@@ -21,6 +27,8 @@ interface Ticket {
   reservationNo: string;
   representativeName: string;
   companions: string[];
+  totalCount?: number;
+  groups?: TicketGroup[]; // 招待用グループ
   liveData?: any;
 }
 
@@ -30,11 +38,10 @@ export default function MyPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [fetching, setFetching] = useState(true);
 
-  // 認証ガード & 初期データ取得
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.push("/"); // ログインしてなければトップへ
+      router.push("/");
       return;
     }
     loadMyTickets();
@@ -55,7 +62,6 @@ export default function MyPage() {
       const ticketList: Ticket[] = [];
       for (const d of snap.docs) {
         const data = d.data() as Ticket;
-        // Live情報の詳細も取得
         const liveSnap = await getDoc(doc(db, "lives", data.liveId));
         ticketList.push({
           ...data,
@@ -72,7 +78,6 @@ export default function MyPage() {
     }
   };
 
-  // ログアウト処理
   const handleLogout = async () => {
     if (!(await showDialog("ログアウトしますか？"))) return;
     showSpinner();
@@ -82,7 +87,6 @@ export default function MyPage() {
     router.push("/");
   };
 
-  // 退会処理
   const handleWithdrawal = async () => {
     const confirmMsg = "【退会確認】\n退会すると予約済みのチケットもすべて無効になります。本当によろしいですか？";
     if (!(await showDialog(confirmMsg))) return;
@@ -90,11 +94,9 @@ export default function MyPage() {
 
     showSpinner();
     try {
-      // チケット削除
       for (const t of tickets) {
-        await deleteTicket(t.liveId, user?.uid, false);
+        await deleteTicket(t.id, user?.uid, false);
       }
-      // ユーザー削除（アーカイブ）
       await archiveAndDeleteDoc("connectUsers", user!.uid);
       await auth.signOut();
       clearAllAppSession();
@@ -107,12 +109,16 @@ export default function MyPage() {
     }
   };
 
-  // URLコピー
-  const handleCopyUrl = async (resType: string, ticketId: string) => {
-    const url = `${window.location.origin}/ticket-detail/${ticketId}`;
+  // URLコピー関数の拡張（グループ個別コピーにも対応）
+  const handleCopyUrl = async (ticketId: string, groupIndex?: number) => {
+    let url = `${window.location.origin}/ticket-detail/${ticketId}`;
+    if (groupIndex !== undefined) {
+      url += `?g=${groupIndex + 1}`;
+    }
+    
     await navigator.clipboard.writeText(url);
-    const msg = resType === 'invite' 
-      ? "招待用URLをコピーしました！" 
+    const msg = groupIndex !== undefined
+      ? "グループ専用のチケットURLをコピーしました！"
       : "チケットURLをコピーしました！";
     await showDialog(msg, true);
   };
@@ -177,8 +183,7 @@ export default function MyPage() {
   );
 }
 
-// チケットカードをコンポーネントとして分割
-function TicketCard({ ticket, onRefresh, onCopy }: { ticket: Ticket, onRefresh: () => void, onCopy: any }) {
+function TicketCard({ ticket, onRefresh, onCopy }: { ticket: Ticket, onRefresh: () => void, onCopy: (id: string, idx?: number) => void }) {
   const live = ticket.liveData;
   if (!live) return null;
   const { user } = useAuth();
@@ -190,7 +195,9 @@ function TicketCard({ ticket, onRefresh, onCopy }: { ticket: Ticket, onRefresh: 
   return (
     <div className="ticket-card detail-mode">
       <div className="card-status-area">
-        <div className="res-no-mini">NO. {ticket.reservationNo || "----"}</div>
+        <div className="res-no-mini">
+            {ticket.resType === 'invite' ? 'INVITATION' : `NO. ${ticket.reservationNo || "----"}`}
+        </div>
       </div>
       
       <div className="ticket-info">
@@ -202,21 +209,44 @@ function TicketCard({ ticket, onRefresh, onCopy }: { ticket: Ticket, onRefresh: 
         
         <div className="t-details">
           <p><i className="fa-solid fa-location-dot"></i> 会場: {live.venue}</p>
-          <p><i className="fa-solid fa-user"></i> 代表者: {ticket.representativeName} 様</p>
-          <p><i className="fa-solid fa-users"></i> 同伴者: {ticket.companions?.join(" 様、") || "なし"}{ticket.companions?.length > 0 && " 様"}</p>
+          <p><i className="fa-solid fa-user-check"></i> {ticket.resType === 'invite' ? '予約担当' : '代表者'}: {ticket.representativeName} 様</p>
+          
+          {ticket.resType === 'invite' ? (
+            // 招待予約の場合：グループリストを表示
+            <div className="mypage-groups-list">
+              <p className="groups-label"><i className="fa-solid fa-users"></i> 招待グループ一覧:</p>
+              {ticket.groups?.map((g, idx) => (
+                <div key={idx} className="mypage-group-item">
+                  <span className="g-name">
+                    ・{g.groupName} のみなさま ({g.companions.filter(c => c !== "").length}名)
+                  </span>
+                  <button className="btn-copy-mini" onClick={() => onCopy(ticket.id, idx)}>
+                    <i className="fa-solid fa-link"></i> COPY
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            // 一般予約の場合
+            <p><i className="fa-solid fa-users"></i> 同伴者: {ticket.companions?.filter(c => c !== "").join(" 様、") || "なし"}{ticket.companions?.filter(c => c !== "").length > 0 && " 様"}</p>
+          ) }
         </div>
         
         <div className="ticket-actions">
-          <button className="btn-view" onClick={() => onCopy(ticket.resType, ticket.id)}>URLコピー</button>
-          <Link href={`/ticket-detail/${ticket.id}`} className="btn-ticket">チケット表示</Link>
+          {ticket.resType !== 'invite' && (
+            <button className="btn-view" onClick={() => onCopy(ticket.id)}>URLコピー</button>
+          )}
+          <Link href={`/ticket-detail/${ticket.id}`} className="btn-ticket">
+            {ticket.resType === 'invite' ? 'すべてのチケットを表示' : 'チケット表示'}
+          </Link>
         </div>
 
         {canModify ? (
           <div className="ticket-actions">
-            <Link href={`/ticket-reserve/${ticket.liveId}`} className="btn-edit">変更</Link>
+            <Link href={`/ticket-reserve/${ticket.liveId}`} className="btn-edit">内容変更</Link>
             <button className="btn-delete" onClick={async () => {
-              if (await deleteTicket(ticket.id, user?.uid)) onRefresh();
-            }}>取消</button>
+                if (await deleteTicket(ticket.id, user?.uid)) onRefresh();
+            }}>予約取消</button>
           </div>
         ) : (
           <div className="ticket-actions">
