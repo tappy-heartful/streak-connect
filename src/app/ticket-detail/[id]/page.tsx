@@ -139,9 +139,7 @@ export default function TicketDetailPage() {
           <p className="qr-note">FOR ENTRANCE CHECK-IN</p>
         </div>
 
-        {/* ライブ情報 & 注意事項 */}
-        <LiveInfoBox />
-
+        {/* 1. 招待客リストを先に表示 */}
         <div className="group-guests">
           <p className="group-guests-label">ご招待客リスト</p>
           <ul className="guest-list-mini">
@@ -153,6 +151,9 @@ export default function TicketDetailPage() {
             )}
           </ul>
         </div>
+
+        {/* 2. ライブ情報をその後に表示 */}
+        <LiveInfoBox />
       </div>
     );
   };
@@ -222,12 +223,25 @@ export default function TicketDetailPage() {
                 <p className="qr-note">FOR ENTRANCE CHECK-IN</p>
               </div>
 
+              {/* 代表者・同伴者情報をQRの下に追加 */}
+              <div className="group-guests" style={{ marginBottom: '20px' }}>
+                <p className="group-guests-label">ご予約名簿</p>
+                <ul className="guest-list-mini">
+                  <li className="guest-item-mini" style={{ fontWeight: 'bold' }}>{ticket.representativeName} 様 (代表)</li>
+                  {ticket.companions?.filter((c: string) => c !== "").map((name: string, i: number) => (
+                    <li key={i} className="guest-item-mini">{name} 様</li>
+                  ))}
+                </ul>
+              </div>
+
               {/* ライブ情報 & 注意事項 */}
               <LiveInfoBox />
             </div>
           )}
 
-          <div className="share-info-wrapper">
+          {/* 旧「share-info-wrapper (ご予約情報)」セクション全体を削除 */}
+
+          {/* <div className="share-info-wrapper">
             <p className="res-type-label-small">
               {ticket.resType === 'invite' ? 'INVITATION (招待枠)' : 'GENERAL RESERVATION (一般予約)'}
             </p>
@@ -255,7 +269,7 @@ export default function TicketDetailPage() {
                 </ul>
               </>
             )}
-          </div>
+          </div> */}
 
           {live.flyerUrl && (
             <div className="flyer-wrapper">
