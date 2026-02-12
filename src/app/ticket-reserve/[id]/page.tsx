@@ -9,11 +9,17 @@ import {
 } from "firebase/firestore";
 import { 
   showSpinner, hideSpinner, showDialog, 
-  formatDateToYMDDot, 
   writeLog
 } from "@/src/lib/functions";
 import Link from "next/link";
 import "./ticket-reserve.css";
+
+// 型定義
+interface ReserveGroup {
+  groupName: string;
+  companions: string[];
+  reservationNo?: string; // 4桁-連番
+}
 
 export default function TicketReservePage() {
   const { id } = useParams(); // liveId
@@ -22,8 +28,14 @@ export default function TicketReservePage() {
 
   const [live, setLive] = useState<any>(null);
   const [resType, setResType] = useState<"invite" | "general">("general");
+  
+  // 一般予約用
   const [representativeName, setRepresentativeName] = useState("");
-  const [companions, setCompanions] = useState<string[]>([]);
+  const [generalCompanions, setGeneralCompanions] = useState<string[]>([]);
+  
+  // 招待予約用 (グループ管理)
+  const [inviteGroups, setInviteGroups] = useState<ReserveGroup[]>([]);
+
   const [isMember, setIsMember] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [existingTicket, setExistingTicket] = useState<any>(null);
@@ -52,14 +64,16 @@ export default function TicketReservePage() {
       setLive(liveData);
 
       const maxComp = liveData.maxCompanions || 0;
-      setCompanions(Array(maxComp).fill(""));
 
-      // streak-navi側のメンバーチェック
+      // メンバーチェック
       const userRef = doc(db, "users", user!.uid);
       const userSnap = await getDoc(userRef);
       const memberStatus = userSnap.exists();
       setIsMember(memberStatus);
-      if (memberStatus) setResType("invite");
+      
+      // デフォルトの予約種別設定
+      const initialResType = memberStatus ? "invite" : "general";
+      setResType(initialResType);
 
       // 既存予約の取得
       const ticketId = `${id}_${user!.uid}`;
@@ -69,16 +83,36 @@ export default function TicketReservePage() {
       if (ticketSnap.exists()) {
         const tData = ticketSnap.data();
         setExistingTicket(tData);
-        setResType(tData.resType || (memberStatus ? "invite" : "general"));
-        setRepresentativeName(tData.representativeName || "");
-        
-        const newCompanions = Array(maxComp).fill("");
-        (tData.companions || []).forEach((name: string, i: number) => {
-          if (i < maxComp) newCompanions[i] = name;
-        });
-        setCompanions(newCompanions);
+        setResType(tData.resType || initialResType);
+
+        if (tData.resType === "invite") {
+          // 招待予約の復元
+          if (tData.groups && tData.groups.length > 0) {
+            setInviteGroups(tData.groups);
+          } else {
+            // 旧データからの移行対応
+            setInviteGroups([{
+              groupName: "ご招待客",
+              companions: tData.companions || Array(maxComp).fill(""),
+              reservationNo: tData.reservationNo + "-1"
+            }]);
+          }
+        } else {
+          // 一般予約の復元
+          setRepresentativeName(tData.representativeName || "");
+          const newComps = Array(maxComp).fill("");
+          (tData.companions || []).forEach((name: string, i: number) => {
+            if (i < maxComp) newComps[i] = name;
+          });
+          setGeneralCompanions(newComps);
+        }
       } else {
-        setRepresentativeName("");
+        // 新規予約時の初期化
+        setGeneralCompanions(Array(maxComp).fill(""));
+        setInviteGroups([{
+          groupName: "",
+          companions: Array(maxComp).fill("")
+        }]);
       }
 
     } catch (e) {
@@ -89,14 +123,47 @@ export default function TicketReservePage() {
     }
   };
 
+  // グループ追加
+  const addGroup = () => {
+    const maxComp = live.maxCompanions || 0;
+    setInviteGroups([...inviteGroups, { groupName: "", companions: Array(maxComp).fill("") }]);
+  };
+
+  // グループ削除
+  const removeGroup = (index: number) => {
+    if (inviteGroups.length <= 1) return;
+    const newGroups = [...inviteGroups];
+    newGroups.splice(index, 1);
+    setInviteGroups(newGroups);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const finalCompanions = companions.filter(name => name.trim() !== "");
-    const totalCount = resType === "invite" ? finalCompanions.length : finalCompanions.length + 1;
+    let totalCount = 0;
+    const cleanedGroups: ReserveGroup[] = [];
+    let cleanedGeneralCompanions: string[] = [];
+
+    if (resType === "general") {
+      cleanedGeneralCompanions = generalCompanions.filter(n => n.trim() !== "");
+      totalCount = cleanedGeneralCompanions.length + 1;
+    } else {
+      // 招待予約の集計
+      inviteGroups.forEach(g => {
+        const c = g.companions.filter(n => n.trim() !== "");
+        if (g.groupName.trim() !== "" || c.length > 0) {
+          cleanedGroups.push({
+            groupName: g.groupName || "名称未設定グループ",
+            companions: c,
+            reservationNo: g.reservationNo // 既存があれば維持
+          });
+          totalCount += c.length;
+        }
+      });
+    }
 
     if (totalCount === 0) {
-      await showDialog(`予約人数が0名です。${resType === "invite" ? "招待するお客様" : "代表者様、同伴者様"}を入力してください。`, true);
+      await showDialog(`予約人数が0名です。内容を入力してください。`, true);
       return;
     }
 
@@ -120,21 +187,33 @@ export default function TicketReservePage() {
           throw new Error("完売または残席不足です。");
         }
 
-        const reservationNo = existingTicket?.reservationNo || 
-                             Math.floor(1000 + Math.random() * 9000).toString();
+        // 予約番号の発行ロジック
+        const baseNo = existingTicket?.reservationNo?.split('-')[0] || 
+                       Math.floor(1000 + Math.random() * 9000).toString();
 
         const ticketData: any = {
           liveId: id,
           uid: user!.uid,
           resType: resType,
-          representativeName: resType === "invite" ? (userData?.displayName || "") : representativeName,
-          reservationNo: reservationNo,
-          companions: finalCompanions,
-          companionCount: finalCompanions.length,
           totalCount: totalCount,
           isLineNotified: false,
           updatedAt: serverTimestamp(),
         };
+
+        if (resType === "general") {
+          ticketData.representativeName = representativeName;
+          ticketData.companions = cleanedGeneralCompanions;
+          ticketData.companionCount = cleanedGeneralCompanions.length;
+          ticketData.reservationNo = baseNo;
+        } else {
+          ticketData.representativeName = userData?.displayName || "メンバー";
+          // グループごとに枝番を振る
+          ticketData.groups = cleanedGroups.map((g, i) => ({
+            ...g,
+            reservationNo: g.reservationNo || `${baseNo}-${i + 1}`
+          }));
+          ticketData.reservationNo = baseNo; // 親番号としても保持
+        }
 
         if (!existingTicket) {
           ticketData.createdAt = serverTimestamp();
@@ -147,21 +226,16 @@ export default function TicketReservePage() {
       });
 
       hideSpinner();
-      // 成功ログの記録
-      await writeLog({
-        dataId: ticketId,
-        action: 'Ticket予約確定',
-      });
+      await writeLog({ dataId: ticketId, action: 'Ticket予約確定' });
       await showDialog("予約を確定しました！", true);
       router.push(`/ticket-detail/${ticketId}`);
     } catch (e: any) {
       hideSpinner();
-      // エラーログの記録
       await writeLog({
         dataId: ticketId,
         action: 'Ticket予約確定',
         status: 'error',
-        errorDetail: { message: e.message, stack: e.stack },
+        errorDetail: { message: e.message },
       });
       await showDialog(e.message || "エラーが発生しました", true);
     }
@@ -188,6 +262,7 @@ export default function TicketReservePage() {
             <span className="current">Reserve</span>
           </nav>
 
+          {/* ライブ詳細カード（既存維持） */}
           <div className="ticket-card detail-mode">
             <div className="ticket-info">
               <div className="t-date">{live.date}</div>
@@ -229,54 +304,113 @@ export default function TicketReservePage() {
               )}
 
               {resType === "general" && (
-                <div className="form-group">
-                  <label>代表者名 <span className="required">必須</span></label>
-                  <p className="form-note">※個人情報保護のため、なるべくニックネームで入力してください</p>
-                  <div className="input-row">
-                    <input 
-                      type="text" 
-                      value={representativeName} 
-                      onChange={(e) => setRepresentativeName(e.target.value)} 
-                      required 
-                      placeholder="例：ステレオ 太郎"
-                    />
-                    <span className="honorific">様</span>
+                <>
+                  <div className="form-group">
+                    <label>代表者名 <span className="required">必須</span></label>
+                    <p className="form-note">※個人情報保護のため、なるべくニックネームで入力してください</p>
+                    <div className="input-row">
+                      <input 
+                        type="text" 
+                        value={representativeName} 
+                        onChange={(e) => setRepresentativeName(e.target.value)} 
+                        required={resType === "general"}
+                        placeholder="例：ステレオ 太郎"
+                      />
+                      <span className="honorific">様</span>
+                    </div>
                   </div>
-                </div>
+
+                  <h3 className="sub-title">同伴者様</h3>
+                  <p className="form-note">※「友達」、「親戚」などニックネームや間柄でご入力ください</p>
+
+                  {generalCompanions.map((name, index) => (
+                    <div className="form-group" key={index}>
+                      <label>ゲスト {index + 1}</label>
+                      <div className="input-row">
+                        <input 
+                          type="text" 
+                          value={name} 
+                          onChange={(e) => {
+                            const newComps = [...generalCompanions];
+                            newComps[index] = e.target.value;
+                            setGeneralCompanions(newComps);
+                          }} 
+                          placeholder="例：友達、親戚"
+                        />
+                        <span className="honorific">様</span>
+                      </div>
+                    </div>
+                  ))}
+                </>
               )}
 
+              {/* --- 招待予約フォーム (グループ対応版) --- */}
               {resType === "invite" && (
-                <div className="form-group">
-                  <label>予約担当（出演メンバー）</label>
-                  <input type="text" value={userData?.displayName || ""} readOnly className="read-only-input" />
-                </div>
+                <>
+                  <div className="form-group">
+                    <label>予約担当（出演メンバー）</label>
+                    <input type="text" value={userData?.displayName || ""} readOnly className="read-only-input" />
+                  </div>
+
+                  <h3 className="sub-title">招待グループ設定</h3>
+                  <p className="form-note">招待するグループごとに名前を分けて登録できます（例：地元の友達、家族など）。URLやQRコードはグループごとに発行されます。</p>
+
+                  {inviteGroups.map((group, gIndex) => (
+                    <div className="group-container" key={gIndex}>
+                      <div className="group-header">
+                        <span className="group-title">グループ {gIndex + 1}</span>
+                        {inviteGroups.length > 1 && (
+                          <button type="button" className="btn-remove-group" onClick={() => removeGroup(gIndex)}>削除</button>
+                        )}
+                      </div>
+
+                      <div className="form-group group-name-row">
+                        <label>グループ名</label>
+                        <div className="input-row">
+                          <input 
+                            type="text" 
+                            value={group.groupName}
+                            onChange={(e) => {
+                              const newGroups = [...inviteGroups];
+                              newGroups[gIndex].groupName = e.target.value;
+                              setInviteGroups(newGroups);
+                            }}
+                            placeholder="例：地元の友達"
+                          />
+                          <span className="honorific">のみなさま</span>
+                        </div>
+                      </div>
+
+                      {group.companions.map((name, cIndex) => (
+                        <div className="form-group" key={cIndex} style={{marginLeft: '20px'}}>
+                          <label>ゲスト {cIndex + 1}</label>
+                          <div className="input-row">
+                            <input 
+                              type="text" 
+                              value={name} 
+                              onChange={(e) => {
+                                const newGroups = [...inviteGroups];
+                                newGroups[gIndex].companions[cIndex] = e.target.value;
+                                setInviteGroups(newGroups);
+                              }} 
+                              placeholder="例：ニックネーム"
+                            />
+                            <span className="honorific">様</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+
+                  <div className="add-group-wrapper">
+                    <button type="button" className="btn-add-group" onClick={addGroup}>
+                      + 新しい招待グループを追加
+                    </button>
+                  </div>
+                </>
               )}
 
-              <h3 className="sub-title">
-                {resType === "invite" ? "招待するお客様" : "同伴者様"}
-              </h3>
-              <p className="form-note">※個人情報保護のため「友達」、「親戚」などなるべくニックネームや間柄でご入力ください</p>
-
-              {companions.map((name, index) => (
-                <div className="form-group" key={index}>
-                  <label>ゲスト {index + 1}</label>
-                  <div className="input-row">
-                    <input 
-                      type="text" 
-                      value={name} 
-                      onChange={(e) => {
-                        const newComps = [...companions];
-                        newComps[index] = e.target.value;
-                        setCompanions(newComps);
-                      }} 
-                      placeholder="例：友達、親戚"
-                    />
-                    <span className="honorific">様</span>
-                  </div>
-                </div>
-              ))}
-
-              {/* ライブ側からの注意事項がある場合のみ表示 */}
+              {/* ライブ側からの注意事項（既存維持） */}
               {live.notes && (
                 <div className="live-notes-area">
                   <p className="live-notes-text">{live.notes}</p>
