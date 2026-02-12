@@ -141,7 +141,7 @@ export default function TicketReservePage() {
     setInviteGroups(newGroups);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+ const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     let totalCount = 0;
@@ -193,7 +193,7 @@ export default function TicketReservePage() {
         const baseNo = existingTicket?.reservationNo?.split('-')[0] || 
                        Math.floor(1000 + Math.random() * 9000).toString();
 
-        // ベースとなるデータ
+        // 共通データ
         const ticketData: any = {
           liveId: id,
           uid: user!.uid,
@@ -201,32 +201,35 @@ export default function TicketReservePage() {
           totalCount: totalCount,
           isLineNotified: false,
           updatedAt: serverTimestamp(),
+          reservationNo: baseNo,
         };
 
         if (resType === "general") {
           ticketData.representativeName = representativeName;
           ticketData.companions = cleanedGeneralCompanions;
           ticketData.companionCount = cleanedGeneralCompanions.length;
-          ticketData.reservationNo = baseNo;
-          // 招待予約側のデータを削除
-          ticketData.groups = deleteField();
+          // 更新時のみ、反対側のデータを削除
+          if (existingTicket) {
+            ticketData.groups = deleteField();
+          }
         } else {
           ticketData.representativeName = userData?.displayName || "メンバー";
           ticketData.groups = cleanedGroups.map((g, i) => ({
             ...g,
             reservationNo: g.reservationNo || `${baseNo}-${i + 1}`
           }));
-          ticketData.reservationNo = baseNo;
-          // 一般予約側のデータを削除
-          ticketData.companions = deleteField();
-          ticketData.companionCount = deleteField();
+          // 更新時のみ、反対側のデータを削除
+          if (existingTicket) {
+            ticketData.companions = deleteField();
+            ticketData.companionCount = deleteField();
+          }
         }
 
         if (!existingTicket) {
           ticketData.createdAt = serverTimestamp();
-          transaction.set(resRef, ticketData);
+          transaction.set(resRef, ticketData); // 新規：deleteFieldを含まないデータ
         } else {
-          transaction.update(resRef, ticketData);
+          transaction.update(resRef, ticketData); // 更新：deleteFieldで不要項目を消去
         }
 
         transaction.update(liveRef, { totalReserved: (lData.totalReserved || 0) + diff });
