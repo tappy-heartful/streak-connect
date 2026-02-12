@@ -31,7 +31,6 @@ export default function TicketDetailPage() {
     showSpinner();
     setFetching(true);
     try {
-      // 1. チケットデータの取得
       const ticketRef = doc(db, "tickets", id as string);
       const ticketSnap = await getDoc(ticketRef);
 
@@ -43,7 +42,6 @@ export default function TicketDetailPage() {
       const ticketData = ticketSnap.data();
       setTicket(ticketData);
 
-      // 2. ライブデータの取得
       const liveRef = doc(db, "lives", ticketData.liveId);
       const liveSnap = await getDoc(liveRef);
       if (liveSnap.exists()) {
@@ -57,12 +55,17 @@ export default function TicketDetailPage() {
     }
   };
 
-  const handleCopyUrl = async () => {
-    await navigator.clipboard.writeText(window.location.href);
-    const msg = ticket?.resType === 'invite'
-      ? "招待用URLをコピーしました！\nご招待するお客様に共有してください。"
+  // 指定されたURLをコピーする汎用関数
+  const copyToClipboard = async (url: string, isGroup = false) => {
+    await navigator.clipboard.writeText(url);
+    const msg = isGroup
+      ? "グループ専用の招待URLをコピーしました！\nこのグループのお客様に共有してください。"
       : "チケットURLをコピーしました！\n同伴者様に共有してください。";
     await showDialog(msg, true);
+  };
+
+  const handleCopyUrl = async () => {
+    await copyToClipboard(window.location.href);
   };
 
   const handleDelete = async () => {
@@ -74,11 +77,55 @@ export default function TicketDetailPage() {
   if (authLoading || fetching) return <div className="inner">Loading...</div>;
   if (!ticket || !live) return null;
 
-  // 権限・ステータス判定
   const isOwner = user?.uid === ticket.uid;
   const todayStr = formatDateToYMDDot(new Date());
   const isPast = live.date < todayStr;
   const canModify = !isPast && live.isAcceptReserve;
+
+  // 招待グループのレンダリング関数
+  const renderInviteGroupCard = (group: any, index: number) => {
+    // グループごとの専用URLを作成（クエリパラメータ付与）
+    const groupUrl = `${window.location.origin}/ticket-detail/${id}?g=${index + 1}`;
+    
+    return (
+      <div key={index} className="ticket-card detail-mode invite-group-card">
+        <div className="group-name-badge">{group.groupName} 様</div>
+        
+        <div className="res-no-wrapper">
+          <span className="res-no-label">RESERVATION NO.</span>
+          <div className="res-no-display">
+            <span className="res-no-value">{group.reservationNo || "----"}</span>
+          </div>
+          <button className="btn-copy-no" onClick={() => copyToClipboard(groupUrl, true)}>
+            <i className="fa-solid fa-link"></i> <span>COPY</span>
+          </button>
+        </div>
+
+        <div className="qr-wrapper">
+          <div className="qrcode-container">
+            <QRCodeSVG 
+              value={groupUrl} 
+              size={180} 
+              bgColor={"#ffffff"} 
+              fgColor={"#000000"} 
+              level={"M"} 
+              marginSize={4}
+            />
+          </div>
+          <p className="qr-note">FOR ENTRANCE CHECK-IN</p>
+        </div>
+
+        <div className="group-guests">
+          <p className="group-guests-label">ご招待客リスト</p>
+          <ul className="guest-list-mini">
+            {group.companions.filter((c: string) => c !== "").map((name: string, i: number) => (
+              <li key={i} className="guest-item-mini">{name} 様</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <main>
@@ -105,51 +152,61 @@ export default function TicketDetailPage() {
               : '当日はこの画面を会場受付にてご提示ください！'}
           </p>
 
-          <div className="ticket-card detail-mode">
-            <div className="res-no-wrapper">
-              <span className="res-no-label">RESERVATION NO.</span>
-              <div className="res-no-display">
-                <span className="res-no-value">{ticket.reservationNo || "----"}</span>
-              </div>
-              <button className="btn-copy-no" onClick={handleCopyUrl}>
-                <i className="fa-solid fa-link"></i> <span>COPY</span>
-              </button>
+          {/* --- チケット表示エリア --- */}
+          {ticket.resType === 'invite' && ticket.groups ? (
+            // 招待予約：グループごとにカードを表示
+            <div className="invite-groups-container">
+              {ticket.groups.map((g: any, i: number) => renderInviteGroupCard(g, i))}
             </div>
+          ) : (
+            // 一般予約：従来のシングルカード表示
+            <div className="ticket-card detail-mode">
+              <div className="res-no-wrapper">
+                <span className="res-no-label">RESERVATION NO.</span>
+                <div className="res-no-display">
+                  <span className="res-no-value">{ticket.reservationNo || "----"}</span>
+                </div>
+                <button className="btn-copy-no" onClick={handleCopyUrl}>
+                  <i className="fa-solid fa-link"></i> <span>COPY</span>
+                </button>
+              </div>
 
-            <div className="qr-wrapper">
-              <div className="qrcode-container">
-                <QRCodeSVG 
-                  value={id as string} 
-                  size={180}            // 少し大きく
-                  bgColor={"#ffffff"}   // 背景は白（必須）
-                  fgColor={"#000000"}   // セルは黒（必須）
-                  level={"M"}           // 密度を下げる（M または L）
-                  marginSize={4}        // 💡 includeMarginの代わりにこれを使用（セルの4個分程度の余白）
-                />
+              <div className="qr-wrapper">
+                <div className="qrcode-container">
+                  <QRCodeSVG 
+                    value={id as string} 
+                    size={180} 
+                    bgColor={"#ffffff"} 
+                    fgColor={"#000000"} 
+                    level={"M"} 
+                    marginSize={4}
+                  />
+                </div>
+                <p className="qr-note">FOR ENTRANCE CHECK-IN</p>
               </div>
-              <p className="qr-note">FOR ENTRANCE CHECK-IN</p>
-            </div>
 
-            <div className="ticket-info">
-              <div className="t-date">{live.date}</div>
-              <Link href={`/live-detail/${ticket.liveId}`} className="t-title-link">
-                <h3 className="t-title">{live.title}</h3>
-              </Link>
-              <div className="t-details">
-                <p><i className="fa-solid fa-location-dot"></i> 会場: {live.venue}</p>
-                <p><i className="fa-solid fa-clock"></i> Open {live.open} / Start {live.start}</p>
-                <p><i className="fa-solid fa-ticket"></i> 前売料金: {live.advance}</p>
-              </div>
-            </div>
-            {/* ライブの注意事項を表示 */}
-            {live.notes && (
-              <div className="notes-section">
-                <div className="live-notes-box">
-                  {live.notes}
+              <div className="ticket-info">
+                <div className="t-date">{live.date}</div>
+                <Link href={`/live-detail/${ticket.liveId}`} className="t-title-link">
+                  <h3 className="t-title">{live.title}</h3>
+                </Link>
+                <div className="t-details">
+                  <p><i className="fa-solid fa-location-dot"></i> 会場: {live.venue}</p>
+                  <p><i className="fa-solid fa-clock"></i> Open {live.open} / Start {live.start}</p>
+                  <p><i className="fa-solid fa-ticket"></i> 前売料金: {live.advance}</p>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {/* ライブの注意事項 */}
+          {live.notes && (
+            <div className="notes-section">
+              <div className="live-notes-box">
+                {live.notes}
+              </div>
+            </div>
+          )}
 
           <div className="share-info-wrapper">
             <p className="res-type-label-small">
@@ -158,21 +215,26 @@ export default function TicketDetailPage() {
             <h3 className="sub-title">ご予約情報</h3>
             <div className="t-details">
               <p><i className="fa-solid fa-user-check"></i> {ticket.resType === 'invite' ? '予約担当' : '代表者'}: {ticket.representativeName} 様</p>
-              <p><i className="fa-solid fa-users"></i> 合計人数: {ticket.totalCount || ticket.companions?.length + 1 || 1} 名</p>
+              <p><i className="fa-solid fa-users"></i> 合計人数: {ticket.totalCount || 1} 名</p>
             </div>
 
-            <h3 className="sub-title">{ticket.resType === 'invite' ? 'ご招待者様' : 'ご同伴者様'}</h3>
-            <ul className="guest-list">
-              {ticket.companions && ticket.companions.length > 0 ? (
-                ticket.companions.map((name: string, index: number) => (
-                  <li key={index} className="guest-item">
-                    <i className="fa-solid fa-user-tag"></i> {name} 様
-                  </li>
-                ))
-              ) : (
-                <li className="guest-item empty">同伴者の登録はありません</li>
-              )}
-            </ul>
+            {/* 一般予約の場合のみ、同伴者リストを表示（招待はグループカード内にあるため） */}
+            {ticket.resType !== 'invite' && (
+              <>
+                <h3 className="sub-title">ご同伴者様</h3>
+                <ul className="guest-list">
+                  {ticket.companions && ticket.companions.length > 0 ? (
+                    ticket.companions.map((name: string, index: number) => (
+                      <li key={index} className="guest-item">
+                        <i className="fa-solid fa-user-tag"></i> {name} 様
+                      </li>
+                    ))
+                  ) : (
+                    <li className="guest-item empty">同伴者の登録はありません</li>
+                  )}
+                </ul>
+              </>
+            )}
           </div>
 
           {live.flyerUrl && (
@@ -191,18 +253,24 @@ export default function TicketDetailPage() {
                   <button className="btn-action btn-delete-outline" onClick={handleDelete}>
                     <i className="fa-solid fa-trash-can"></i> 予約を取り消す
                   </button>
-                  <button className="btn-action btn-copy-outline" onClick={handleCopyUrl}>
-                    <i className="fa-solid fa-link"></i> チケットURLをコピー
-                  </button>
+                  {/* 指示：招待予約の時は非表示 */}
+                  {ticket.resType !== 'invite' && (
+                    <button className="btn-action btn-copy-outline" onClick={handleCopyUrl}>
+                      <i className="fa-solid fa-link"></i> チケットURLをコピー
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="reserved-actions">
                   <span className="status-badge">
                     {isPast ? "ライブは終了しました" : "予約受付期間外"}
                   </span>
-                  <button className="btn-action btn-copy-outline" onClick={handleCopyUrl}>
-                    <i className="fa-solid fa-link"></i> チケットURLをコピー
-                  </button>
+                  {/* 指示：招待予約の時は非表示 */}
+                  {ticket.resType !== 'invite' && (
+                    <button className="btn-action btn-copy-outline" onClick={handleCopyUrl}>
+                      <i className="fa-solid fa-link"></i> チケットURLをコピー
+                    </button>
+                  )}
                 </div>
               )}
             </div>
