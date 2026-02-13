@@ -114,7 +114,10 @@ export default function TicketDetailPage() {
     return (
       <div key={index} className="ticket-card detail-mode invite-group-card">
         <div className="group-name-badge">{group.groupName} のみなさま</div>
-        
+        <div className="inviter-message">
+          <i className="fa-solid fa-envelope-open-text"></i>
+          <span>{ticket.representativeName} 様よりご招待</span>
+        </div>
         <div className="res-no-wrapper">
           <span className="res-no-label">RESERVATION NO.</span>
           <div className="res-no-display">

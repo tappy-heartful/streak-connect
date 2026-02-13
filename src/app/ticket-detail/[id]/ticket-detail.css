@@ -266,3 +266,36 @@
     margin-right: 6px;
     font-size: 0.8rem;
 }
+
+/* 招待者メッセージのスタイル */
+.inviter-message {
+    margin-top: 20px; /* バッジとの干渉を避ける余白 */
+    margin-bottom: 10px;
+    text-align: center;
+    color: #ccc;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.inviter-message i {
+    color: #e7211a;
+    font-size: 1rem;
+}
+
+.inviter-message span {
+    font-weight: bold;
+    color: #fff; /* 名前を強調 */
+}
+
+/* ゲスト視聴時はガイドテキストを少し調整 */
+.ticket-guide-text {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    color: #ccc;
+}
