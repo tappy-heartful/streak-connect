@@ -120,7 +120,7 @@ export default function TicketReservePage() {
         }]);
       }
 
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setFetching(false);
@@ -363,7 +363,7 @@ export default function TicketReservePage() {
                   </div>
 
                   <h3 className="sub-title">招待グループ設定</h3>
-                  <p className="form-note">招待するグループごとに名前を分けて登録できます。URLやQRコードはグループごとに発行されます。</p>
+                  <p className="form-note">招待するグループごとに名前を分けて登録できます。チケットURLやQRコード、予約番号はグループごとに分けて発行されます。</p>
 
                   {inviteGroups.map((group, gIndex) => (
                     <div className="group-container" key={gIndex}>

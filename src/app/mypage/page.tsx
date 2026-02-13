@@ -70,7 +70,7 @@ export default function MyPage() {
         });
       }
       setTickets(ticketList);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setFetching(false);
@@ -95,14 +95,14 @@ export default function MyPage() {
     showSpinner();
     try {
       for (const t of tickets) {
-        await deleteTicket(t.id, user?.uid, false);
+        await deleteTicket(t.liveId, user?.uid, false);
       }
       await archiveAndDeleteDoc("connectUsers", user!.uid);
       await auth.signOut();
       clearAllAppSession();
       await showDialog("退会処理が完了しました。", true);
       router.push("/");
-    } catch (e) {
+    } catch (e: any) {
       alert("エラーが発生しました");
     } finally {
       hideSpinner();
@@ -245,7 +245,7 @@ function TicketCard({ ticket, onRefresh, onCopy }: { ticket: Ticket, onRefresh: 
           <div className="ticket-actions">
             <Link href={`/ticket-reserve/${ticket.liveId}`} className="btn-edit">内容変更</Link>
             <button className="btn-delete" onClick={async () => {
-                if (await deleteTicket(ticket.id, user?.uid)) onRefresh();
+                if (await deleteTicket(ticket.liveId, user?.uid)) onRefresh();
             }}>予約取消</button>
           </div>
         ) : (

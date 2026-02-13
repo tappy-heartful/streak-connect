@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext"; // ここでカスタムフックをインポート
 import { db } from "@/src/lib/firebase";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { showSpinner, hideSpinner, getSession, removeSession } from "@/src/lib/functions";
+import { showSpinner, hideSpinner, getSession, removeSession, writeLog } from "@/src/lib/functions";
 import Link from "next/link";
 import "./agreement.css";
 
@@ -39,8 +39,14 @@ export default function AgreementPage() {
       removeSession("redirectAfterLogin");
       
       router.push(target);
-    } catch (e) {
+    } catch (e: any) {
       console.error("Agreement error:", e);
+      await writeLog({
+        dataId: user.uid,
+        action: 'Ticket予約確定',
+        status: 'error',
+        errorDetail: { message: e.message },
+      });
       alert("登録処理中にエラーが発生しました。");
     } finally {
       hideSpinner();

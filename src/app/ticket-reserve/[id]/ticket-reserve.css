@@ -1,314 +1,324 @@
-/* ライブ詳細カードの調整 */
+/* ライブ詳細カード */
 .ticket-card.detail-mode {
-    background: #1a1a1a;
-    padding: 20px;
-    border-left: 5px solid #e7211a;
-    margin-bottom: 30px;
+  background: #1a1a1a;
+  padding: 20px;
+  border-left: 5px solid #e7211a;
+  margin-bottom: 30px;
 }
 
-.sub-title {
-    margin: 35px 0 15px;
-    color: #fff;
-    font-size: 1.3rem; /* タイトルも強調 */
-    border-left: 5px solid #e7211a;
-    padding-left: 12px;
-    font-family: 'Impact', sans-serif;
+.t-date {
+  color: #e7211a;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.t-title {
+  font-size: 1.5rem;
+  margin: 10px 0;
+  color: #fff;
 }
 
 .t-details p {
-    margin: 8px 0;
-    font-size: 0.95rem;
+  margin: 8px 0;
+  font-size: 0.95rem;
+  color: #ccc;
 }
 
-/* フォーム関連 */
+/* フォーム全体 */
 .form-wrapper {
-    margin-top: 20px;
-    background: #111;
-    padding: 30px;
-    border: 1px solid #222;
+  margin-top: 20px;
+  background: #111;
+  padding: 30px;
+  border: 1px solid #222;
+}
+
+.section-title {
+  font-family: 'Impact', sans-serif;
+  font-size: 1.8rem;
+  margin-bottom: 30px;
+  text-align: center;
+  color: #fff;
 }
 
 .sub-title {
-    margin: 30px 0 15px;
-    color: #fff;
-    font-size: 1.1rem;
-    border-left: 4px solid #e7211a;
-    padding-left: 10px;
+  margin: 35px 0 15px;
+  color: #fff;
+  font-size: 1.3rem;
+  border-left: 5px solid #e7211a;
+  padding-left: 12px;
+  font-family: 'Impact', sans-serif;
 }
 
-/* ticket-reserve.css に追加 */
-.form-note {
-    font-size: 0.85rem;
-    color: #888; /* 控えめなグレー */
-    margin: -5px 0 10px 0; /* ラベルとの間隔を詰め、入力欄との間を開ける */
-    line-height: 1.4;
-    font-weight: normal;
-}
-
-
+/* 共通パーツ：入力・ラベル */
 .form-group {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
-/* フォーム関連の強化 */
 .form-group label {
-    display: block;
-    color: #ccc;
-    margin-bottom: 8px;
-    font-size: 1.1rem; /* 大きくした */
+  display: block;
+  color: #ccc;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
 }
 
-/* ついでに、入力欄のプレースホルダーも少しあわくすると雰囲気がでます */
-.form-group input::placeholder {
-    color: #555;
-    font-size: 0.9rem;
+.form-note {
+  font-size: 0.85rem;
+  color: #888;
+  margin: -5px 0 10px 0;
+  line-height: 1.4;
 }
 
-/* 入力欄と「様」を横並びにするコンテナ */
 .input-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
 }
 
 .form-group input {
-    flex: 1; /* 入力欄を広げる */
-    padding: 14px; /* 少し太く */
-    background: #222;
-    border: 1px solid #333;
-    color: #fff;
-    border-radius: 4px;
-    font-size: 1.1rem; /* 入力文字も大きく */
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  background: #222;
+  border: 1px solid #333;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
 }
-
-.honorific {
-    color: #fff;
-    font-size: 1.1rem;
-    white-space: nowrap;
-}
-
 
 .form-group input:focus {
-    border-color: #e7211a;
-    outline: none;
+  border-color: #e7211a;
+  outline: none;
 }
 
 .form-group .read-only-input {
-    background: transparent; 
-    border-color: transparent;
-}
-
-/* ラジオボタンの調整 */
-.radio-group {
-    display: flex;
-    flex-direction: column; /* 縦並びにして注釈を入れやすく */
-    gap: 15px;
-    margin-top: 10px;
-    background: #1a1a1a;
-    padding: 20px;
-    border-radius: 4px;
-}
-
-.radio-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.radio-label {
-    cursor: pointer;
-    font-size: 1.1rem; /* 少し大きく */
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #fff;
-    font-weight: bold;
-}
-
-.radio-description {
-    display: block;
-    font-size: 0.85rem;
-    color: #888;
-    margin-left: 28px; /* ラジオボタンの円の分だけインデント */
-}
-
-.radio-label input[type="radio"] {
-    width: 18px;
-    height: 18px;
-    accent-color: #e7211a;
-}
-.required {
-    color: #e7211a;
-    font-size: 0.7rem;
-    margin-left: 5px;
-}
-
-.form-actions {
-    margin-top: 40px;
-    text-align: center;
-}
-
-.btn-reserve {
-    width: 100%;
-    max-width: 400px;
-    padding: 15px;
-    background: #e7211a;
-    color: #fff;
-    border: none;
-    font-weight: bold;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: 0.3s;
-    border-radius: 50px;
-}
-
-.btn-reserve:hover {
-    background: #b61a15;
-}
-
-
-/* 注意文言エリアのスタイル */
-.live-notes-area {
-    margin: 20px 0;
-    padding: 15px;
-    background: rgba(231, 33, 26, 0.05); /* ほんのり赤みを帯びた背景 */
-    border-left: 3px solid #e7211a;
-    border-radius: 4px;
-}
-
-.live-notes-text {
-    font-size: 0.85rem;
-    color: #ccc;
-    line-height: 1.6;
-    /* 💡 これが重要：改行コードを反映させ、枠からはみ出す場合は折り返す */
-    white-space: pre-wrap; 
-    margin: 0;
-}
-/* 入力欄と「様」を横並びにするコンテナの修正 */
-.input-row {
-    display: flex;
-    align-items: center;
-    gap: 8px; /* 間隔を少し詰める */
-    width: 100%;
-    min-width: 0; /* フレックスアイテムのはみ出し防止 */
-}
-
-.form-group input {
-    flex: 1; 
-    min-width: 0; /* これが重要：親要素を突き破らないようにする */
-    padding: 12px;
-    background: #222;
-    border: 1px solid #333;
-    color: #fff;
-    border-radius: 4px;
-    font-size: 1rem;
+  background: transparent;
+  border-color: transparent;
+  color: #e7211a;
+  font-weight: bold;
 }
 
 .honorific {
-    color: #fff;
-    font-size: 0.95rem; /* 少し小さくして可読性を確保 */
-    white-space: nowrap; /* 「様」や「のみなさま」を途中で改行させない */
-    flex-shrink: 0; /* 文字が押しつぶされないように固定 */
+  color: #fff;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.group-container .form-group {
-    margin-left: 0 !important; /* スマホでインデントがあると苦しいので解除 */
-    margin-bottom: 15px;
+/* ラジオボタン（予約種別） */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 10px;
+  background: #1a1a1a;
+  padding: 20px;
+  border-radius: 4px;
 }
 
-/* ゲスト入力欄のラベルを少し小さくして、左側にスペースを作る（PCのみ） */
-@media (min-width: 768px) {
-    .group-container .form-group {
-        margin-left: 20px !important;
-    }
+.radio-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-/* グループ名入力欄の調整 */
-.group-name-row .honorific {
-    font-weight: bold;
-    color: #e7211a;
+.radio-label {
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-weight: bold;
 }
-/* グループコンテナのスタイル */
+
+.radio-label input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #e7211a;
+}
+
+.radio-description {
+  font-size: 0.85rem;
+  color: #888;
+  margin-left: 28px;
+}
+
+.required {
+  color: #e7211a;
+  font-size: 0.7rem;
+  margin-left: 5px;
+}
+
+/* --- 招待グループコンテナ --- */
 .group-container {
-    background: #1a1a1a;
-    border: 1px solid #333;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    position: relative;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  padding: 20px;
+  margin-bottom: 30px;
+  border-radius: 8px;
+  position: relative;
 }
 
 .group-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #333;
-    padding-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
 }
 
 .group-title {
-    font-size: 1rem;
-    color: #e7211a;
-    font-weight: bold;
+  font-size: 1rem;
+  color: #e7211a;
+  font-weight: bold;
 }
 
 .btn-remove-group {
-    background: transparent;
-    color: #888;
-    border: 1px solid #444;
-    padding: 4px 12px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: 0.3s;
+  background: transparent;
+  color: #888;
+  border: 1px solid #444;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: 0.3s;
 }
 
 .btn-remove-group:hover {
-    background: #e7211a;
-    color: #fff;
-    border-color: #e7211a;
+  background: #e7211a;
+  color: #fff;
+  border-color: #e7211a;
 }
 
+/* 招待グループ内の階層デザイン */
 .group-name-row {
-    margin-bottom: 20px;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #333;
 }
 
-/* 追加ボタンのスタイル */
+.group-name-row .honorific {
+  font-weight: bold;
+  color: #e7211a;
+}
+
+/* ゲスト入力欄のインデントとL字コネクタ */
+.guest-input-group {
+  margin-bottom: 15px;
+  position: relative;
+  padding-left: 15px;
+}
+
+.guest-input-group label {
+  font-size: 0.9rem !important;
+  color: #888 !important;
+  margin-bottom: 4px;
+}
+
+.guest-input-group input {
+  background: #111 !important; /* 少し暗くして階層を表現 */
+  border-color: #2a2a2a !important;
+  padding: 10px 14px !important;
+}
+
+@media (min-width: 768px) {
+  .guest-input-group {
+    margin-left: 40px !important; /* PCでは深めにインデント */
+    padding-left: 25px;
+  }
+
+  /* ゲスト入力の左側にコネクタ線を表示 */
+  .guest-input-group::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: -15px;
+    width: 20px;
+    height: 38px;
+    border-left: 2px solid #444;
+    border-bottom: 2px solid #444;
+    border-bottom-left-radius: 8px;
+  }
+}
+
+/* 追加ボタン */
 .add-group-wrapper {
-    text-align: center;
-    margin: 20px 0 40px;
+  text-align: center;
+  margin: 20px 0 40px;
 }
 
 .btn-add-group {
-    background: transparent;
-    color: #fff;
-    border: 2px dashed #444;
-    padding: 12px 30px;
-    font-size: 1rem;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: 0.3s;
-    width: 100%;
+  background: transparent;
+  color: #fff;
+  border: 2px dashed #444;
+  padding: 15px 30px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: 0.3s;
+  width: 100%;
 }
 
 .btn-add-group:hover {
-    border-color: #e7211a;
-    color: #e7211a;
-    background: rgba(231, 33, 26, 0.05);
+  border-color: #e7211a;
+  color: #e7211a;
+  background: rgba(231, 33, 26, 0.05);
 }
 
-.invite-summary {
-    background: #111;
-    padding: 15px;
-    border-radius: 4px;
-    margin-bottom: 20px;
-    border: 1px solid #e7211a;
+/* ライブ注意事項 */
+.live-notes-area {
+  margin: 20px 0;
+  padding: 15px;
+  background: rgba(231, 33, 26, 0.05);
+  border-left: 3px solid #e7211a;
+  border-radius: 4px;
 }
 
-.invite-summary p {
-    margin: 0;
-    font-size: 0.9rem;
-    color: #fff;
+.live-notes-text {
+  font-size: 0.85rem;
+  color: #ccc;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+/* 送信アクション */
+.form-actions {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.btn-reserve {
+  width: 100%;
+  max-width: 400px;
+  padding: 18px;
+  background: #e7211a;
+  color: #fff;
+  border: none;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: 0.3s;
+  border-radius: 50px;
+  box-shadow: 0 4px 15px rgba(231, 33, 26, 0.3);
+}
+
+.btn-reserve:hover {
+  background: #b61a15;
+  transform: translateY(-2px);
+}
+
+.btn-back-home {
+  color: #888;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: 0.3s;
+}
+
+.btn-back-home:hover {
+  color: #fff;
 }

@@ -48,7 +48,7 @@ export default function LiveDetailPage() {
         const ticketSnap = await getDoc(ticketRef);
         setIsReserved(ticketSnap.exists());
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setFetching(false);
@@ -85,8 +85,8 @@ const handleReserveClick = async () => {
         } else {
           throw new Error("ログインURLの取得に失敗しました");
         }
-      } catch (err) {
-        console.error(err);
+      } catch (e: any) {
+        console.error(e);
         alert("ログイン処理中にエラーが発生しました。");
       } finally {
         hideSpinner();

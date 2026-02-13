@@ -33,8 +33,8 @@ export default function Header() {
         } else {
           throw new Error("ログインURLの取得に失敗しました");
         }
-      } catch (err) {
-        console.error(err);
+      } catch (e: any) {
+        console.error(e);
         alert("ログイン処理中にエラーが発生しました。");
         hideSpinner();
       }
