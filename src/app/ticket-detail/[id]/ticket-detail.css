@@ -31,6 +31,7 @@
     color: #888;
     display: block;
     margin-bottom: 5px;
+    margin-top: 10px;
     letter-spacing: 0.2em;
 }
 
@@ -192,4 +193,76 @@
     font-size: 0.8rem;
     color: #e7211a;
     letter-spacing: 2px;
+}
+
+/* 招待グループ用カードのコンテナ */
+.invite-groups-container {
+    display: flex;
+    flex-direction: column;
+    gap: 40px; /* カード同士の隙間 */
+    margin-bottom: 30px;
+}
+
+/* 招待個別カードの装飾 */
+.invite-group-card {
+    border-top: 1px solid #333;
+    border-right: 1px solid #333;
+    border-bottom: 1px solid #333;
+    /* border-leftは既存の .detail-mode の赤線が適用される */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* グループ名バッジ */
+.group-name-badge {
+    display: inline-block;
+    background: #e7211a;
+    color: #fff;
+    padding: 5px 15px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border-radius: 0 0 8px 0;
+    position: absolute;
+    top: 0;
+    left: -5px; /* 親の border-left 分を考慮 */
+    z-index: 1;
+}
+
+/* カード内のミニ名簿 */
+.group-guests {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed #333;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed #333;
+}
+
+.group-guests-label {
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.guest-list-mini {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 15px;
+}
+
+.guest-item-mini {
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.guest-item-mini::before {
+    content: "\f007"; /* FontAwesome User icon */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: #e7211a;
+    margin-right: 6px;
+    font-size: 0.8rem;
 }
