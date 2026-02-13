@@ -228,12 +228,24 @@ export default function HomePage() {
                       {/* 💡 ボタン表示ロジックの修正 */}
                       {userTickets[live.id] ? (
                         // 予約済みの場合
-                        <Link 
-                          href={`/ticket-detail/${userTickets[live.id]}`} 
-                          className={styles.btnTicketDetail}
-                        >
-                          チケットを表示 / VIEW TICKET
-                        </Link>
+                        <>
+                          <Link
+                            href={`/ticket-detail/${userTickets[live.id]}`}
+                            className={styles.btnTicketDetail}
+                          >
+                            チケットを表示 / VIEW TICKET
+                          </Link>
+                          
+                          {/* 💡 予約済み、かつ「まだ予約受付期間内」なら変更ボタンを出す */}
+                          {canShowReserveBtn(live) && (
+                            <button
+                              onClick={() => handleReserveClick(live.id)}
+                              className={styles.btnReserve}
+                            >
+                              予約を変更 / EDIT RESERVATION
+                            </button>
+                          )}
+                        </>
                       ) : (
                         // 未予約かつ受付中の場合
                         canShowReserveBtn(live) && (
