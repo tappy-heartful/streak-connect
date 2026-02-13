@@ -36,7 +36,6 @@
   font-family: 'Impact', sans-serif;
   font-size: 1.8rem;
   margin-bottom: 30px;
-  text-align: center;
   color: #fff;
 }
 
@@ -210,7 +209,6 @@
 .guest-input-group {
   margin-bottom: 15px;
   position: relative;
-  padding-left: 15px;
 }
 
 .guest-input-group label {
@@ -222,7 +220,6 @@
 .guest-input-group input {
   background: #111 !important; /* 少し暗くして階層を表現 */
   border-color: #2a2a2a !important;
-  padding: 10px 14px !important;
 }
 
 @media (min-width: 768px) {
