@@ -230,6 +230,7 @@
   composes: btnBase;
   background: #fff;
   color: #000;
+  margin-top: 20px;
 }
 .btnTicketDetail:hover {
   background: #e9e9e9;

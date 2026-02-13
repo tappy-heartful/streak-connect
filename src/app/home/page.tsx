@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { db } from "@/src/lib/firebase";
-import { collection, query, orderBy, getDocs, limit } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, limit, where } from "firebase/firestore";
 import { 
   buildInstagramHtml, 
   formatDateToYMDDot, 
@@ -31,6 +31,9 @@ export default function HomePage() {
   const [medias, setMedias] = useState<any[]>([]);
   const [loadingLives, setLoadingLives] = useState(true);
   const [loadingMedias, setLoadingMedias] = useState(true);
+  
+  // 💡 ユーザーが予約しているチケット情報を保持する（キーは liveId）
+  const [userTickets, setUserTickets] = useState<{ [liveId: string]: string }>({});
 
   const members = [
     { name: 'Shoei Matsushita', role: 'Guitar / Band Master', origin: 'Ehime' },
@@ -46,18 +49,10 @@ export default function HomePage() {
 
   const goodsItems = ['item1.jpg', 'item2.jpg', 'item3.jpg', 'item4.jpg'];
 
-// PHOTOS セクション用の設定
   const imageMap: { [key: number]: number } = {
-    1: 2,
-    2: 4,
-    3: 3,
-    4: 5,
-    5: 4,
-    6: 2,
+    1: 2, 2: 4, 3: 3, 4: 5, 5: 4, 6: 2,
   };
 
-  // imageMapを元に、全ファイル名の配列を生成
-  // 例: ["1_1.jpg", "1_2.jpg", "2_1.jpg", ...]
   const activityPhotos = Object.entries(imageMap).flatMap(([n, maxM]) => {
     const photos = [];
     for (let m = 1; m <= maxM; m++) {
@@ -100,6 +95,36 @@ export default function HomePage() {
     fetchLives();
     fetchMedias();
   }, []);
+
+// 💡 ログインしている場合、ユーザーの予約状況を取得する
+  useEffect(() => {
+    // user が null または undefined の場合は処理を中断する
+    if (!user?.uid) {
+      setUserTickets({});
+      return;
+    }
+
+    async function fetchUserTickets() {
+      try {
+        // ここで user.uid は確実に存在することが保証される
+        const q = query(collection(db, "tickets"), where("uid", "==", user!.uid));
+        const snapshot = await getDocs(q);
+        const ticketMap: { [liveId: string]: string } = {};
+        
+        snapshot.docs.forEach(doc => {
+          const data = doc.data();
+          if (data.liveId) {
+            ticketMap[data.liveId] = doc.id; 
+          }
+        });
+        setUserTickets(ticketMap);
+      } catch (e) {
+        console.error("Tickets fetch error:", e);
+      }
+    }
+    
+    fetchUserTickets();
+  }, [user]); // userが変わるたびに実行
 
   useEffect(() => {
     if (medias.length > 0) {
@@ -174,7 +199,6 @@ export default function HomePage() {
             ) : (
               lives.map((live) => (
                 <div key={live.id} className={styles.ticketCard}>
-                  {/* フライヤー全体をLinkで包む */}
                   <Link href={`/live-detail/${live.id}`} className={styles.ticketImgLink}>
                     <div className={styles.ticketImgWrapper}>
                       <img 
@@ -200,13 +224,26 @@ export default function HomePage() {
                       <Link href={`/live-detail/${live.id}`} className={styles.btnDetail}>
                         詳細 / VIEW INFO
                       </Link>
-                      {canShowReserveBtn(live) && (
-                        <button 
-                          onClick={() => handleReserveClick(live.id)} 
-                          className={styles.btnReserve}
+
+                      {/* 💡 ボタン表示ロジックの修正 */}
+                      {userTickets[live.id] ? (
+                        // 予約済みの場合
+                        <Link 
+                          href={`/ticket-detail/${userTickets[live.id]}`} 
+                          className={styles.btnTicketDetail}
                         >
-                          予約 / RESERVE TICKET
-                        </button>
+                          チケットを表示 / VIEW TICKET
+                        </Link>
+                      ) : (
+                        // 未予約かつ受付中の場合
+                        canShowReserveBtn(live) && (
+                          <button 
+                            onClick={() => handleReserveClick(live.id)} 
+                            className={styles.btnReserve}
+                          >
+                            予約 / RESERVE TICKET
+                          </button>
+                        )
                       )}
                     </div>
                   </div>
@@ -222,7 +259,6 @@ export default function HomePage() {
         <div className="inner">
           <h2 className="section-title">Concept</h2>
           <div className={styles.conceptBody}>
-            {/* <p className={styles.conceptLead}>Swingは続く...</p> */}
             <div className={styles.conceptText}>
               <p>愛媛大学のジャズ研究会「Sound Solution Orchestra」のOBOGを中心に、主に20代の若手メンバーで構成するビッグバンドです。</p>
               <p>世代を超えて愛されてきたスタンダードナンバーを中心に、ビッグバンドならではの迫力ある演奏で、ジャズが初めての方でも親しみやすいステージをお届けしています！</p>
