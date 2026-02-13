@@ -51,7 +51,7 @@ export default function TicketDetailPage() {
       if (liveSnap.exists()) {
         setLive(liveSnap.data());
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setFetching(false);

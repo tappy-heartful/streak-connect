@@ -120,7 +120,7 @@ export default function TicketReservePage() {
         }]);
       }
 
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setFetching(false);

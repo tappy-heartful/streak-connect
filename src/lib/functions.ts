@@ -151,7 +151,7 @@ export async function writeLog({ dataId, action, status = 'success', errorDetail
       errorDetail,
       createdAt: serverTimestamp(),
     });
-  } catch (e) {
+  } catch (e: any) {
     console.error("Log failed", e);
   }
 }

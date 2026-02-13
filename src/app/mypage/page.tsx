@@ -70,7 +70,7 @@ export default function MyPage() {
         });
       }
       setTickets(ticketList);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
     } finally {
       setFetching(false);
@@ -102,7 +102,7 @@ export default function MyPage() {
       clearAllAppSession();
       await showDialog("退会処理が完了しました。", true);
       router.push("/");
-    } catch (e) {
+    } catch (e: any) {
       alert("エラーが発生しました");
     } finally {
       hideSpinner();

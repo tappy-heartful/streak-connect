@@ -77,7 +77,7 @@ export default function HomePage() {
           .map(doc => ({ id: doc.id, ...doc.data() as any }))
           .filter(live => live.date >= todayStr);
         setLives(livesData);
-      } catch (e) {
+      } catch (e: any) {
         console.error("Lives fetch error:", e);
       } finally {
         setLoadingLives(false);
@@ -90,7 +90,7 @@ export default function HomePage() {
         const snapshot = await getDocs(q);
         const mediaData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
         setMedias(mediaData);
-      } catch (e) {
+      } catch (e: any) {
         console.error("Medias fetch error:", e);
       } finally {
         setLoadingMedias(false);
@@ -128,8 +128,8 @@ export default function HomePage() {
         } else {
           throw new Error("ログインURLの取得に失敗しました");
         }
-      } catch (err) {
-        console.error(err);
+      } catch (e: any) {
+        console.error(e);
         alert("ログイン処理中にエラーが発生しました。");
       } finally {
         hideSpinner();
