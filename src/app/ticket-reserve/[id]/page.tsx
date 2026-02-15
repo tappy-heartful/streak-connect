@@ -135,7 +135,7 @@ export default function TicketReservePage() {
   };
 
   const removeGroup = (index: number) => {
-    if (inviteGroups.length <= 1) return;
+    if (inviteGroups.length <= 1 || index !== inviteGroups.length - 1) return;
     const newGroups = [...inviteGroups];
     newGroups.splice(index, 1);
     setInviteGroups(newGroups);
@@ -369,7 +369,7 @@ export default function TicketReservePage() {
                     <div className="group-container" key={gIndex}>
                       <div className="group-header">
                         <span className="group-title">グループ {gIndex + 1}</span>
-                        {inviteGroups.length > 1 && (
+                        {inviteGroups.length > 1 && gIndex === inviteGroups.length - 1 && (
                           <button type="button" className="btn-remove-group" onClick={() => removeGroup(gIndex)}>削除</button>
                         )}
                       </div>
