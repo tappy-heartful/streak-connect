@@ -41,7 +41,6 @@ export default function HomePage() {
     { name: 'Takumi Fujimoto', role: 'Saxophne / Lead Alto Sax', origin: 'Hiroshima' },
     { name: 'Kana Asahiro', role: 'Trombone / Lead Trombone', origin: 'Nara' },
     { name: 'Hiroto Murakami', role: 'Trombone / Section Leader', origin: 'Ehime' },
-    { name: 'Taisei Yuyama', role: 'Saxophne / Lead Tenor Sax', origin: 'Ehime' },
     { name: 'Shunta Yabu', role: 'Saxophne / Section Leader', origin: 'Hiroshima' },
     { name: 'Akito Kimura', role: 'Drums', origin: 'Okayama' },
     { name: 'Yojiro Nakagawa', role: 'Bass', origin: 'Hiroshima' },
