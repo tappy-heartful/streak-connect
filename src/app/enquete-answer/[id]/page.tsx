@@ -22,6 +22,7 @@ export default function EnqueteAnswerPage() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [fetching, setFetching] = useState(true);
+  const [submitting, setSubmitting] = useState(false); // 二重送信防止用
 
   useEffect(() => {
     loadData();
@@ -63,7 +64,6 @@ export default function EnqueteAnswerPage() {
 
   /**
    * 進行状況（%）を計算
-   * 必須項目（required: true）のみを対象にする
    */
   const getProgress = () => {
     const requiredQuestions = questions.filter(q => q.required);
@@ -84,6 +84,8 @@ export default function EnqueteAnswerPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
+
     const missing = questions.find(q => q.required && !answers[q.id]);
     if (missing) {
       await showDialog(`「${missing.label}」にお答えください`, true);
@@ -92,6 +94,7 @@ export default function EnqueteAnswerPage() {
 
     if (!(await showDialog("アンケートを送信しますか？"))) return;
 
+    setSubmitting(true);
     showSpinner();
     try {
       await addDoc(collection(db, "enqueteAnswers"), {
@@ -105,6 +108,7 @@ export default function EnqueteAnswerPage() {
       router.push(`/live-detail/${id}`);
     } catch (e: any) {
       showDialog("送信に失敗しました。");
+      setSubmitting(false);
     } finally {
       hideSpinner();
     }
@@ -124,7 +128,6 @@ export default function EnqueteAnswerPage() {
       <section className="content-section">
         <div className="inner">
           
-          {/* プログレスバー (Sticky対応) */}
           <div className={styles.progressContainer}>
             <div className={styles.progressStats}>
               <span className={styles.progressLabel}>
@@ -150,9 +153,12 @@ export default function EnqueteAnswerPage() {
 
           <div className={styles.formWrapper}>
             <form onSubmit={handleSubmit}>
-              {questions.map((q) => (
+              {questions.map((q, i) => (
                 <div key={q.id} className={styles.formGroup}>
                   <label className={styles.fieldLabel}>
+                    <span style={{ marginRight: '8px', color: '#888', fontSize: '0.9rem' }}>
+                      {i + 1}/{questions.length}
+                    </span>
                     {q.label} 
                     {q.required ? (
                       <span className={styles.requiredBadge}>必須</span>
@@ -161,6 +167,7 @@ export default function EnqueteAnswerPage() {
                     )}
                   </label>
 
+                  {/* 各入力フィールド（既存通り） */}
                   {q.type === "rating" && (
                     <div className={styles.ratingGroup}>
                       {[1, 2, 3, 4, 5].map((num) => (
@@ -224,8 +231,13 @@ export default function EnqueteAnswerPage() {
               ))}
 
               <div className="live-actions">
-                <button type="submit" className="btn-action btn-reserve-red" style={{width: '100%'}}>
-                  アンケートを送信する
+                <button 
+                  type="submit" 
+                  className="btn-action btn-reserve-red" 
+                  style={{ width: '100%' }}
+                  disabled={submitting}
+                >
+                  {submitting ? "送信中..." : "アンケートを送信する"}
                 </button>
               </div>
             </form>
