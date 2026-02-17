@@ -105,6 +105,7 @@ const handleReserveClick = async () => {
   const todayStr = formatDateToYMDDot(new Date());
   const isAccepting = live.isAcceptReserve === true;
   const isPast = live.date < todayStr;
+  const isToday = live.date <= todayStr;
   const isBefore = live.acceptStartDate && todayStr < live.acceptStartDate;
   const isAfter = live.acceptEndDate && todayStr > live.acceptEndDate;
 
@@ -200,7 +201,11 @@ const handleReserveClick = async () => {
           {/* アクションボタンエリア */}
           <div className="live-actions" style={{ marginTop: "40px" }}>
             {isPast ? (
-              <button className="btn-action disabled" style={{width: "100%", padding: "15px", borderRadius: "50px"}} disabled>このライブは終了しました</button>
+              <><button className="btn-action disabled" style={{ width: "100%", padding: "15px", borderRadius: "50px" }} disabled>このライブは終了しました</button><div className="reserved-actions">
+                <Link href={`/enquete-answer/${id}`} className="btn-action btn-enquete-soft">
+                  <i className="fa-solid fa-pen-to-square"></i> アンケートに回答
+                </Link>
+              </div></>
             ) : (!isAccepting || isBefore || isAfter) ? (
               <div className="action-box" style={{ textAlign: "center" }}>
                 {isReserved && (
@@ -213,6 +218,11 @@ const handleReserveClick = async () => {
                 </button>
                 {live.acceptStartDate && (
                   <p className="accept-period">受付期間: {live.acceptStartDate} ～ {live.acceptEndDate}</p>
+                )}
+                {isToday && (
+                  <Link href={`/enquete-answer/${id}`} className="btn-action btn-enquete-soft">
+                    <i className="fa-solid fa-pen-to-square"></i> アンケートに回答
+                  </Link>
                 )}
               </div>
             ) : (
@@ -228,6 +238,11 @@ const handleReserveClick = async () => {
                     <button className="btn-action btn-delete-outline" onClick={handleCancel}>
                       <i className="fa-solid fa-trash-can"></i> この予約を取り消す
                     </button>
+                    {isToday && (
+                      <Link href={`/enquete-answer/${id}`} className="btn-action btn-enquete-soft">
+                        <i className="fa-solid fa-pen-to-square"></i> アンケートに回答
+                      </Link>
+                    )}
                   </div>
                 ) : (
                   <div className="reserved-actions">
@@ -236,6 +251,11 @@ const handleReserveClick = async () => {
                     </button>
                     {live.acceptStartDate && (
                       <p className="accept-period">受付終了: {live.acceptEndDate}</p>
+                    )}
+                    {isToday && (
+                      <Link href={`/enquete-answer/${id}`} className="btn-action btn-enquete-soft">
+                        <i className="fa-solid fa-pen-to-square"></i> アンケートに回答
+                      </Link>
                     )}
                   </div>
                 )}
