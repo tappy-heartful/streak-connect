@@ -94,7 +94,7 @@ export default function EnqueteAnswerPage() {
   return (
     <main>
       {/* 共通CSSの .hero を使用 */}
-      <section className="hero" style={{ "--hero-bg": 'url("https://tappy-heartful.github.io/streak-images/connect/background/ticket-reserve.jpg")' } as any}>
+      <section className="hero" style={{ "--hero-bg": 'url("https://tappy-heartful.github.io/streak-images/connect/background/enquete-answer.jpg")' } as any}>
         <div className="hero-content">
           <h1 className="page-title">ENQUETE</h1>
           <p className="tagline">Feedback Form</p>
