@@ -139,8 +139,7 @@ export default function EnqueteAnswerPage() {
               <div 
                 className={styles.progressBarFill} 
                 style={{ 
-                  width: `${progress}%`,
-                  backgroundColor: isComplete ? "#00c853" : "#e7211a" 
+                  width: `${progress}%`
                 }}
               />
             </div>
