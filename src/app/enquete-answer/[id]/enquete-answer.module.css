@@ -47,6 +47,16 @@
   border-radius: 4px;
 }
 
+.optionalBadge {
+  color: #888;
+  font-size: 0.7rem;
+  vertical-align: middle;
+  margin-left: 8px;
+  border: 1px solid #444;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
 /* Rating Star */
 .ratingGroup {
   display: flex;
@@ -67,7 +77,7 @@
   color: #e7211a;
 }
 
-/* Form Controls */
+/* Form Controls - ここを修正 */
 .inputText, .textarea {
   width: 100%;
   padding: 12px;
@@ -76,6 +86,13 @@
   color: #fff;
   border-radius: 4px;
   font-size: 1rem;
+  /* 💡 追加: paddingを含めて100%の幅にする */
+  box-sizing: border-box; 
+  outline: none;
+}
+
+.inputText:focus, .textarea:focus {
+  border-color: #e7211a;
 }
 
 .textarea {
@@ -104,6 +121,7 @@
   accent-color: #e7211a;
 }
 
+/* Progress Bar (Stickyは無効化、通常の表示用) */
 .progressContainer {
   /* スティッキー設定 */
   position: -webkit-sticky; /* Safari対応 */
@@ -152,15 +170,4 @@
   background: #e7211a;
   transition: width 0.4s ease, background-color 0.3s ease;
   box-shadow: 0 0 10px rgba(231, 33, 26, 0.3);
-}
-
-/* 任意回答用のバッジスタイルも追加 */
-.optionalBadge {
-  color: #888;
-  font-size: 0.7rem;
-  vertical-align: middle;
-  margin-left: 8px;
-  border: 1px solid #444;
-  padding: 1px 5px;
-  border-radius: 3px;
 }
