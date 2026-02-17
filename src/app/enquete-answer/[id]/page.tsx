@@ -65,7 +65,7 @@ export default function EnqueteAnswerPage() {
     e.preventDefault();
     const missing = questions.find(q => q.required && !answers[q.id]);
     if (missing) {
-      await showDialog(`「${missing.label}」は必須項目です。`, true);
+      await showDialog(`「${missing.label}」にお答えください`, true);
       return;
     }
 
@@ -80,7 +80,7 @@ export default function EnqueteAnswerPage() {
         common: answers,
         createdAt: serverTimestamp(),
       });
-      await showDialog("ご協力ありがとうございました！", true);
+      await showDialog("ご協力ありがとうございました！\nお気を付けてお帰りください", true);
       router.push(`/live-detail/${id}`);
     } catch (e: any) {
       showDialog("送信に失敗しました。");
