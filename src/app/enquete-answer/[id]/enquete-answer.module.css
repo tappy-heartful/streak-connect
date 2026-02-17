@@ -1,0 +1,173 @@
+/* アンケート固有のスタイル */
+
+.liveBrief {
+  background: #1a1a1a;
+  padding: 20px;
+  border-left: 5px solid #e7211a;
+  margin-bottom: 30px;
+}
+
+.liveDate {
+  color: #e7211a;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.liveTitleText {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #fff;
+}
+
+.formWrapper {
+  background: #111;
+  padding: 30px;
+  border: 1px solid #222;
+}
+
+.formGroup {
+  margin-bottom: 35px;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  color: #eee;
+  line-height: 1.4;
+}
+
+.requiredBadge {
+  color: #e7211a;
+  font-size: 0.75rem;
+  vertical-align: middle;
+  margin-left: 8px;
+  background: rgba(231, 33, 26, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.optionalBadge {
+  color: #888;
+  font-size: 0.7rem;
+  vertical-align: middle;
+  margin-left: 8px;
+  border: 1px solid #444;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* Rating Star */
+.ratingGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.ratingBtn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #333;
+  cursor: pointer;
+  transition: 0.2s;
+  padding: 0;
+}
+
+.ratingBtnActive {
+  color: #e7211a;
+}
+
+/* Form Controls - ここを修正 */
+.inputText, .textarea {
+  width: 100%;
+  padding: 12px;
+  background: #222;
+  border: 1px solid #333;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 1rem;
+  /* 💡 追加: paddingを含めて100%の幅にする */
+  box-sizing: border-box; 
+  outline: none;
+}
+
+.inputText:focus, .textarea:focus {
+  border-color: #e7211a;
+}
+
+.textarea {
+  height: 120px;
+  resize: none;
+}
+
+.radioList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.selectionLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  color: #ccc;
+}
+
+.selectionLabel input[type="radio"],
+.selectionLabel input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #e7211a;
+}
+
+/* Progress Bar (Stickyは無効化、通常の表示用) */
+.progressContainer {
+  /* スティッキー設定 */
+  position: -webkit-sticky; /* Safari対応 */
+  position: sticky;
+  top: 60px; /* ヘッダーの高さ(60px)分を下げる */
+  z-index: 100; /* フォームコンテンツより前面に */
+  
+  /* デザイン調整 */
+  background: rgba(0, 0, 0, 0.9); /* 背後の文字が透けないよう少し透過した黒 */
+  backdrop-filter: blur(5px);   /* 高級感を出すためのブラー */
+  padding: 15px 20px;           /* 左右に余白を設ける */
+  margin: 0 -20px 20px -20px;   /* 親のpadding(20px)を打ち消して横いっぱいに広げる */
+  border-bottom: 1px solid #222;
+}
+
+.progressStats {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 8px;
+  font-family: 'Impact', sans-serif;
+}
+
+.progressLabel {
+  font-size: 0.7rem;
+  color: #888;
+  letter-spacing: 0.1em;
+}
+
+.progressPercent {
+  font-size: 1.1rem;
+  color: #e7211a;
+  line-height: 1;
+}
+
+.progressBarBg {
+  width: 100%;
+  height: 4px;
+  background: #222;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  background: #e7211a;
+  transition: width 0.4s ease, background-color 0.3s ease;
+  box-shadow: 0 0 10px rgba(231, 33, 26, 0.3);
+}
