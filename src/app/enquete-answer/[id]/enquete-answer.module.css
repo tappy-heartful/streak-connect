@@ -1,0 +1,105 @@
+/* アンケート固有のスタイル */
+
+.liveBrief {
+  background: #1a1a1a;
+  padding: 20px;
+  border-left: 5px solid #e7211a;
+  margin-bottom: 30px;
+}
+
+.liveDate {
+  color: #e7211a;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.liveTitleText {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #fff;
+}
+
+.formWrapper {
+  background: #111;
+  padding: 30px;
+  border: 1px solid #222;
+}
+
+.formGroup {
+  margin-bottom: 35px;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  color: #eee;
+  line-height: 1.4;
+}
+
+.requiredBadge {
+  color: #e7211a;
+  font-size: 0.75rem;
+  vertical-align: middle;
+  margin-left: 8px;
+  background: rgba(231, 33, 26, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Rating Star */
+.ratingGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.ratingBtn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #333;
+  cursor: pointer;
+  transition: 0.2s;
+  padding: 0;
+}
+
+.ratingBtnActive {
+  color: #e7211a;
+}
+
+/* Form Controls */
+.inputText, .textarea {
+  width: 100%;
+  padding: 12px;
+  background: #222;
+  border: 1px solid #333;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.textarea {
+  height: 120px;
+  resize: none;
+}
+
+.radioList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.selectionLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  color: #ccc;
+}
+
+.selectionLabel input[type="radio"],
+.selectionLabel input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #e7211a;
+}
