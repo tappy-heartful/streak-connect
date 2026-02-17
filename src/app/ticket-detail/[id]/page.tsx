@@ -263,6 +263,9 @@ export default function TicketDetailPage() {
                       <i className="fa-solid fa-link"></i> チケットURLをコピー
                     </button>
                   )}
+                  <Link href={`/enquete-answer/${ticket.liveId}`} className="btn-action btn-enquete-soft">
+                    <i className="fa-solid fa-pen-to-square"></i> アンケートに回答
+                  </Link>
                 </div>
               ) : (
                 <div className="reserved-actions">
@@ -274,6 +277,9 @@ export default function TicketDetailPage() {
                       <i className="fa-solid fa-link"></i> チケットURLをコピー
                     </button>
                   )}
+                  <Link href={`/enquete-answer/${ticket.liveId}`} className="btn-action btn-enquete-soft">
+                    <i className="fa-solid fa-pen-to-square"></i> アンケートに回答
+                  </Link>
                 </div>
               )}
             </div>
