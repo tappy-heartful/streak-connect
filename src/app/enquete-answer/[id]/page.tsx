@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { db } from "@/src/lib/firebase";
 import { 
-  doc, getDoc, addDoc, collection, serverTimestamp 
+  doc, getDoc, setDoc, addDoc, collection, query, where, getDocs, serverTimestamp 
 } from "firebase/firestore";
 import { 
   showSpinner, hideSpinner, showDialog 
@@ -22,15 +22,16 @@ export default function EnqueteAnswerPage() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [fetching, setFetching] = useState(true);
-  const [submitting, setSubmitting] = useState(false); // 二重送信防止用
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     loadData();
-  }, [id]);
+  }, [id, user]); // userが変わった際にも再ロード（ログイン状態の反映）
 
   const loadData = async () => {
     showSpinner();
     try {
+      // 1. ライブ情報の取得
       const liveRef = doc(db, "lives", id as string);
       const liveSnap = await getDoc(liveRef);
       if (!liveSnap.exists()) {
@@ -40,17 +41,37 @@ export default function EnqueteAnswerPage() {
       }
       setLive(liveSnap.data());
 
+      // 2. 質問構成の取得
       const qRef = doc(db, "configs", "enqueteQuestions");
       const qSnap = await getDoc(qRef);
       if (qSnap.exists()) {
         const qData = qSnap.data().questions || [];
         setQuestions(qData);
         
+        // 3. 既存回答の確認（ログイン済みの場合）
+        let existingAnswers: Record<string, any> = {};
+        if (user) {
+          // ログインしている場合は自分の回答を探す
+          const ansRef = collection(db, "enqueteAnswers");
+          const q = query(ansRef, where("liveId", "==", id), where("uid", "==", user.uid));
+          const ansSnap = await getDocs(q);
+          
+          if (!ansSnap.empty) {
+            existingAnswers = ansSnap.docs[0].data().common || {};
+          }
+        }
+
+        // 4. 回答ステートの初期化（既存回答があればマージ、なければ空）
         const initialAnswers: Record<string, any> = {};
         qData.forEach((q: any) => {
-          if (q.type === "rating") initialAnswers[q.id] = 0;
-          else if (q.type === "boolean") initialAnswers[q.id] = false;
-          else initialAnswers[q.id] = "";
+          if (existingAnswers[q.id] !== undefined) {
+            initialAnswers[q.id] = existingAnswers[q.id];
+          } else {
+            // デフォルト値
+            if (q.type === "rating") initialAnswers[q.id] = 0;
+            else if (q.type === "boolean") initialAnswers[q.id] = false;
+            else initialAnswers[q.id] = "";
+          }
         });
         setAnswers(initialAnswers);
       }
@@ -62,20 +83,15 @@ export default function EnqueteAnswerPage() {
     }
   };
 
-  /**
-   * 進行状況（%）を計算
-   */
   const getProgress = () => {
     const requiredQuestions = questions.filter(q => q.required);
     if (requiredQuestions.length === 0) return 100;
-    
     const answeredRequiredCount = requiredQuestions.filter(q => {
       const val = answers[q.id];
       if (q.type === "rating") return val > 0;
       if (q.type === "boolean") return val === true;
       return val !== "" && val !== undefined;
     }).length;
-
     return Math.floor((answeredRequiredCount / requiredQuestions.length) * 100);
   };
 
@@ -97,16 +113,34 @@ export default function EnqueteAnswerPage() {
     setSubmitting(true);
     showSpinner();
     try {
-      await addDoc(collection(db, "enqueteAnswers"), {
+      const data = {
         liveId: id,
         liveTitle: live.title,
         uid: user?.uid || null,
         common: answers,
-        createdAt: serverTimestamp(),
-      });
-      await showDialog("ご協力ありがとうございました！\nお気を付けてお帰りください", true);
+        updatedAt: serverTimestamp(), // 更新日時
+      };
+
+      if (user) {
+        // ログイン済み：ドキュメントIDを固定して「更新（または新規作成）」
+        // IDを "ライブID_ユーザーID" にすることで確実に1人1件にする
+        const docId = `${id}_${user.uid}`;
+        await setDoc(doc(db, "enqueteAnswers", docId), {
+          ...data,
+          createdAt: serverTimestamp(), // 初回作成時のみ反映させたい場合は、Firestoreの機能や事前チェックが必要ですが、簡易的にはこれでOK
+        }, { merge: true });
+      } else {
+        // 未ログイン：従来通り「新規追加」
+        await addDoc(collection(db, "enqueteAnswers"), {
+          ...data,
+          createdAt: serverTimestamp(),
+        });
+      }
+
+      await showDialog("ご協力ありがとうございました！", true);
       router.push(`/live-detail/${id}`);
     } catch (e: any) {
+      console.error(e);
       showDialog("送信に失敗しました。");
       setSubmitting(false);
     } finally {
@@ -127,7 +161,6 @@ export default function EnqueteAnswerPage() {
 
       <section className="content-section">
         <div className="inner">
-          
           <div className={styles.progressContainer}>
             <div className={styles.progressStats}>
               <span className={styles.progressLabel}>
@@ -138,9 +171,7 @@ export default function EnqueteAnswerPage() {
             <div className={styles.progressBarBg}>
               <div 
                 className={styles.progressBarFill} 
-                style={{ 
-                  width: `${progress}%`
-                }}
+                style={{ width: `${progress}%` }}
               />
             </div>
           </div>
@@ -159,14 +190,11 @@ export default function EnqueteAnswerPage() {
                       {i + 1}/{questions.length}
                     </span>
                     {q.label} 
-                    {q.required ? (
-                      <span className={styles.requiredBadge}>必須</span>
-                    ) : (
-                      <span className={styles.optionalBadge}>任意</span>
-                    )}
+                    {q.required && <span className={styles.requiredBadge}>必須</span>}
+                    {!q.required && <span className={styles.optionalBadge}>任意</span>}
                   </label>
 
-                  {/* 各入力フィールド（既存通り） */}
+                  {/* Rating */}
                   {q.type === "rating" && (
                     <div className={styles.ratingGroup}>
                       {[1, 2, 3, 4, 5].map((num) => (
@@ -175,13 +203,12 @@ export default function EnqueteAnswerPage() {
                           type="button"
                           className={`${styles.ratingBtn} ${answers[q.id] >= num ? styles.ratingBtnActive : ""}`}
                           onClick={() => setAnswers({...answers, [q.id]: num})}
-                        >
-                          ★
-                        </button>
+                        >★</button>
                       ))}
                     </div>
                   )}
 
+                  {/* Radio */}
                   {q.type === "radio" && (
                     <div className={styles.radioList}>
                       {q.options.map((opt: string) => (
@@ -198,6 +225,7 @@ export default function EnqueteAnswerPage() {
                     </div>
                   )}
 
+                  {/* Textarea */}
                   {q.type === "textarea" && (
                     <textarea
                       className={styles.textarea}
@@ -207,6 +235,7 @@ export default function EnqueteAnswerPage() {
                     />
                   )}
 
+                  {/* Text */}
                   {q.type === "text" && (
                     <input
                       type="text"
@@ -216,6 +245,7 @@ export default function EnqueteAnswerPage() {
                     />
                   )}
 
+                  {/* Boolean */}
                   {q.type === "boolean" && (
                     <label className={styles.selectionLabel}>
                       <input
@@ -236,7 +266,7 @@ export default function EnqueteAnswerPage() {
                   style={{ width: '100%' }}
                   disabled={submitting}
                 >
-                  {submitting ? "送信中..." : "アンケートを送信する"}
+                  {submitting ? "送信中..." : user ? "回答を更新する" : "アンケートを送信する"}
                 </button>
               </div>
             </form>
