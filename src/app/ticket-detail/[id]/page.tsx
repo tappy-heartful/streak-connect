@@ -242,38 +242,6 @@ export default function TicketDetailPage() {
             </div>
           )}
 
-          {/* 旧「share-info-wrapper (ご予約情報)」セクション全体を削除 */}
-
-          {/* <div className="share-info-wrapper">
-            <p className="res-type-label-small">
-              {ticket.resType === 'invite' ? 'INVITATION (招待枠)' : 'GENERAL RESERVATION (一般予約)'}
-            </p>
-            <h3 className="sub-title">ご予約情報</h3>
-            <div className="t-details">
-              <p><i className="fa-solid fa-user-check"></i> {ticket.resType === 'invite' ? '予約担当' : '代表者'}: {ticket.representativeName} 様</p>
-              {!isGuestView && (
-                <p><i className="fa-solid fa-users"></i> 合計人数: {ticket.totalCount || 1} 名</p>
-              )}
-            </div>
-
-            {ticket.resType !== 'invite' && (
-              <>
-                <h3 className="sub-title">ご同伴者様</h3>
-                <ul className="guest-list">
-                  {ticket.companions && ticket.companions.length > 0 ? (
-                    ticket.companions.map((name: string, index: number) => (
-                      <li key={index} className="guest-item">
-                        <i className="fa-solid fa-user-tag"></i> {name} 様
-                      </li>
-                    ))
-                  ) : (
-                    <li className="guest-item empty">同伴者の登録はありません</li>
-                  )}
-                </ul>
-              </>
-            )}
-          </div> */}
-
           {live.flyerUrl && (
             <div className="flyer-wrapper">
               <img src={live.flyerUrl} alt="Flyer" />
