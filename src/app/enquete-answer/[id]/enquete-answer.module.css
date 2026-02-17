@@ -103,3 +103,64 @@
   height: 18px;
   accent-color: #e7211a;
 }
+
+.progressContainer {
+  /* スティッキー設定 */
+  position: -webkit-sticky; /* Safari対応 */
+  position: sticky;
+  top: 60px; /* ヘッダーの高さ(60px)分を下げる */
+  z-index: 100; /* フォームコンテンツより前面に */
+  
+  /* デザイン調整 */
+  background: rgba(0, 0, 0, 0.9); /* 背後の文字が透けないよう少し透過した黒 */
+  backdrop-filter: blur(5px);   /* 高級感を出すためのブラー */
+  padding: 15px 20px;           /* 左右に余白を設ける */
+  margin: 0 -20px 20px -20px;   /* 親のpadding(20px)を打ち消して横いっぱいに広げる */
+  border-bottom: 1px solid #222;
+}
+
+.progressStats {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 8px;
+  font-family: 'Impact', sans-serif;
+}
+
+.progressLabel {
+  font-size: 0.7rem;
+  color: #888;
+  letter-spacing: 0.1em;
+}
+
+.progressPercent {
+  font-size: 1.1rem;
+  color: #e7211a;
+  line-height: 1;
+}
+
+.progressBarBg {
+  width: 100%;
+  height: 4px;
+  background: #222;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  background: #e7211a;
+  transition: width 0.4s ease, background-color 0.3s ease;
+  box-shadow: 0 0 10px rgba(231, 33, 26, 0.3);
+}
+
+/* 任意回答用のバッジスタイルも追加 */
+.optionalBadge {
+  color: #888;
+  font-size: 0.7rem;
+  vertical-align: middle;
+  margin-left: 8px;
+  border: 1px solid #444;
+  padding: 1px 5px;
+  border-radius: 3px;
+}

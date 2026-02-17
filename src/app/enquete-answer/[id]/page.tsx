@@ -8,7 +8,7 @@ import {
   doc, getDoc, addDoc, collection, serverTimestamp 
 } from "firebase/firestore";
 import { 
-  showSpinner, hideSpinner, showDialog, writeLog 
+  showSpinner, hideSpinner, showDialog 
 } from "@/src/lib/functions";
 import Link from "next/link";
 import styles from "./enquete-answer.module.css";
@@ -61,6 +61,27 @@ export default function EnqueteAnswerPage() {
     }
   };
 
+  /**
+   * 進行状況（%）を計算
+   * 必須項目（required: true）のみを対象にする
+   */
+  const getProgress = () => {
+    const requiredQuestions = questions.filter(q => q.required);
+    if (requiredQuestions.length === 0) return 100;
+    
+    const answeredRequiredCount = requiredQuestions.filter(q => {
+      const val = answers[q.id];
+      if (q.type === "rating") return val > 0;
+      if (q.type === "boolean") return val === true;
+      return val !== "" && val !== undefined;
+    }).length;
+
+    return Math.floor((answeredRequiredCount / requiredQuestions.length) * 100);
+  };
+
+  const progress = getProgress();
+  const isComplete = progress === 100;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const missing = questions.find(q => q.required && !answers[q.id]);
@@ -93,7 +114,6 @@ export default function EnqueteAnswerPage() {
 
   return (
     <main>
-      {/* 共通CSSの .hero を使用 */}
       <section className="hero" style={{ "--hero-bg": 'url("https://tappy-heartful.github.io/streak-images/connect/background/enquete-answer.jpg")' } as any}>
         <div className="hero-content">
           <h1 className="page-title">ENQUETE</h1>
@@ -101,9 +121,28 @@ export default function EnqueteAnswerPage() {
         </div>
       </section>
 
-      {/* 共通CSSの .content-section / .inner を使用 */}
       <section className="content-section">
         <div className="inner">
+          
+          {/* プログレスバー (Sticky対応) */}
+          <div className={styles.progressContainer}>
+            <div className={styles.progressStats}>
+              <span className={styles.progressLabel}>
+                {isComplete ? "READY TO SUBMIT" : "REQUIRED ITEMS"}
+              </span>
+              <span className={styles.progressPercent}>{progress}%</span>
+            </div>
+            <div className={styles.progressBarBg}>
+              <div 
+                className={styles.progressBarFill} 
+                style={{ 
+                  width: `${progress}%`,
+                  backgroundColor: isComplete ? "#00c853" : "#e7211a" 
+                }}
+              />
+            </div>
+          </div>
+
           <div className={styles.liveBrief}>
             <p className={styles.liveDate}>{live.date}</p>
             <h2 className={styles.liveTitleText}>{live.title}</h2>
@@ -114,7 +153,12 @@ export default function EnqueteAnswerPage() {
               {questions.map((q) => (
                 <div key={q.id} className={styles.formGroup}>
                   <label className={styles.fieldLabel}>
-                    {q.label} {q.required && <span className={styles.requiredBadge}>必須</span>}
+                    {q.label} 
+                    {q.required ? (
+                      <span className={styles.requiredBadge}>必須</span>
+                    ) : (
+                      <span className={styles.optionalBadge}>任意</span>
+                    )}
                   </label>
 
                   {q.type === "rating" && (
@@ -151,6 +195,7 @@ export default function EnqueteAnswerPage() {
                   {q.type === "textarea" && (
                     <textarea
                       className={styles.textarea}
+                      placeholder="ご自由にご記入ください"
                       value={answers[q.id]}
                       onChange={(e) => setAnswers({...answers, [q.id]: e.target.value})}
                     />
