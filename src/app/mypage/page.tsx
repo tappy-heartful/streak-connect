@@ -190,6 +190,7 @@ function TicketCard({ ticket, onRefresh, onCopy }: { ticket: Ticket, onRefresh: 
 
   const today = formatDateToYMDDot(new Date());
   const isPast = live.date < today;
+  const isPastOrToday = live.date <= today;
   const canModify = !isPast && live.isAcceptReserve;
 
   return (
@@ -251,6 +252,14 @@ function TicketCard({ ticket, onRefresh, onCopy }: { ticket: Ticket, onRefresh: 
         ) : (
           <div className="ticket-actions">
             <span className="status-badge">{isPast ? '終了' : '受付期間外'}</span>
+          </div>
+        )}
+
+        {isPastOrToday && (
+          <div className="ticket-actions">
+            <Link href={`/enquete-answer/${ticket.liveId}`} className="btn-enquete">
+              アンケートに回答
+            </Link>
           </div>
         )}
       </div>

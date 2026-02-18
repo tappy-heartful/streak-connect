@@ -120,7 +120,7 @@
 }
 
 /* 共通ボタン設定 */
-.btn-view, .btn-edit, .btn-delete, .btn-ticket {
+.btn-view, .btn-edit, .btn-delete, .btn-ticket, .btn-enquete {
     flex: 1;
     display: flex;
     align-items: center;
@@ -138,6 +138,9 @@
 
 .btn-ticket { background: #fff; border-color: #fff; color: #000; }
 .btn-ticket:hover { background: #e9e9e9; }
+
+.btn-enquete { background: #fff; border-color: #fff; color: #e7211a; }
+.btn-enquete:hover { background: #e9e9e9; }
 
 .btn-view { background: transparent; border-color: #fff; color: #fff; }
 .btn-view:hover { background: #fff; color: #000; }

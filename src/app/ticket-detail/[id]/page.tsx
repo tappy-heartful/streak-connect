@@ -83,6 +83,7 @@ export default function TicketDetailPage() {
   const isOwner = user?.uid === ticket.uid;
   const todayStr = formatDateToYMDDot(new Date());
   const isPast = live.date < todayStr;
+  const isTodayOrPast = live.date <= todayStr;
   const canModify = !isPast && live.isAcceptReserve;
 
   // 共通のライブ情報＋注意事項コンポーネント
@@ -242,74 +243,50 @@ export default function TicketDetailPage() {
             </div>
           )}
 
-          {/* 旧「share-info-wrapper (ご予約情報)」セクション全体を削除 */}
-
-          {/* <div className="share-info-wrapper">
-            <p className="res-type-label-small">
-              {ticket.resType === 'invite' ? 'INVITATION (招待枠)' : 'GENERAL RESERVATION (一般予約)'}
-            </p>
-            <h3 className="sub-title">ご予約情報</h3>
-            <div className="t-details">
-              <p><i className="fa-solid fa-user-check"></i> {ticket.resType === 'invite' ? '予約担当' : '代表者'}: {ticket.representativeName} 様</p>
-              {!isGuestView && (
-                <p><i className="fa-solid fa-users"></i> 合計人数: {ticket.totalCount || 1} 名</p>
-              )}
-            </div>
-
-            {ticket.resType !== 'invite' && (
-              <>
-                <h3 className="sub-title">ご同伴者様</h3>
-                <ul className="guest-list">
-                  {ticket.companions && ticket.companions.length > 0 ? (
-                    ticket.companions.map((name: string, index: number) => (
-                      <li key={index} className="guest-item">
-                        <i className="fa-solid fa-user-tag"></i> {name} 様
-                      </li>
-                    ))
-                  ) : (
-                    <li className="guest-item empty">同伴者の登録はありません</li>
-                  )}
-                </ul>
-              </>
-            )}
-          </div> */}
-
           {live.flyerUrl && (
             <div className="flyer-wrapper">
               <img src={live.flyerUrl} alt="Flyer" />
             </div>
           )}
 
-          {isOwner && (
-            <div className="live-actions">
-              {canModify ? (
-                <div className="reserved-actions">
+          <div className="live-actions">
+            <div className="reserved-actions">
+              
+              {/* 1. 所有者向けの操作 (予約変更・削除) */}
+              {isOwner && canModify && (
+                <>
                   <Link href={`/ticket-reserve/${ticket.liveId}`} className="btn-action btn-reserve-red">
                     <i className="fa-solid fa-pen-to-square"></i> 予約を変更
                   </Link>
                   <button className="btn-action btn-delete-outline" onClick={handleDelete}>
                     <i className="fa-solid fa-trash-can"></i> 予約を取り消す
                   </button>
-                  {ticket.resType !== 'invite' && (
-                    <button className="btn-action btn-copy-outline" onClick={handleCopyUrl}>
-                      <i className="fa-solid fa-link"></i> チケットURLをコピー
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="reserved-actions">
-                  <span className="status-badge">
-                    {isPast ? "ライブは終了しました" : "予約受付期間外"}
-                  </span>
-                  {ticket.resType !== 'invite' && (
-                    <button className="btn-action btn-copy-outline" onClick={handleCopyUrl}>
-                      <i className="fa-solid fa-link"></i> チケットURLをコピー
-                    </button>
-                  )}
-                </div>
+                </>
               )}
+
+              {/* 2. 所有者だが変更不可な場合のステータス表示 */}
+              {isOwner && !canModify && (
+                <span className="status-badge">
+                  {isPast ? "ライブは終了しました" : "予約受付期間外"}
+                </span>
+              )}
+
+              {/* 3. URLコピーボタン (所有者かつ招待以外なら表示) */}
+              {isOwner && ticket.resType !== 'invite' && (
+                <button className="btn-action btn-copy-outline" onClick={handleCopyUrl}>
+                  <i className="fa-solid fa-link"></i> チケットURLをコピー
+                </button>
+              )}
+
+              {/* 4. アンケート回答ボタン (所有者に関わらず、当日以降なら表示) */}
+              {isTodayOrPast && (
+                <Link href={`/enquete-answer/${ticket.liveId}`} className="btn-action btn-enquete-soft">
+                  <i className="fa-solid fa-pen-to-square"></i> アンケートに回答
+                </Link>
+              )}
+
             </div>
-          )}
+          </div>
         </div>
       </section>
 

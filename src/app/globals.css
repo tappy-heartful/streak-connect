@@ -223,6 +223,20 @@ body {
     color: #000;
 }
 
+/* アンケート回答ボタン (白背景＋赤枠) */
+.btn-enquete-soft {
+    background: #fff;
+    border: 2px solid #e7211a;
+    color: #e7211a;
+    box-shadow: 0 4px 12px rgba(231, 33, 26, 0.15);
+}
+
+.btn-enquete-soft:hover {
+    background: #e7211a;
+    color: #fff;
+    transform: translateY(-2px);
+}
+
 /* 予約済みアクションの並び調整 */
 .reserved-actions {
     display: flex;
