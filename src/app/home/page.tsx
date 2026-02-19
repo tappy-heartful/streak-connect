@@ -38,10 +38,10 @@ export default function HomePage() {
   const members = [
     { name: 'Shoei Matsushita', role: 'Guitar / Band Master', origin: 'Ehime' },
     { name: 'Miku Nozoe', role: 'Trumpet / Lead Trumpet', origin: 'Ehime' },
-    { name: 'Takumi Fujimoto', role: 'Saxophne / Lead Alto Sax', origin: 'Hiroshima' },
+    { name: 'Takumi Fujimoto', role: 'Saxophone / Lead Alto Sax', origin: 'Hiroshima' },
     { name: 'Kana Asahiro', role: 'Trombone / Lead Trombone', origin: 'Nara' },
     { name: 'Hiroto Murakami', role: 'Trombone / Section Leader', origin: 'Ehime' },
-    { name: 'Shunta Yabu', role: 'Saxophne / Section Leader', origin: 'Hiroshima' },
+    { name: 'Shunta Yabu', role: 'Saxophone / Section Leader', origin: 'Hiroshima' },
     { name: 'Akito Kimura', role: 'Drums', origin: 'Okayama' },
     { name: 'Yojiro Nakagawa', role: 'Bass', origin: 'Hiroshima' },
   ];
