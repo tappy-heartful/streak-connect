@@ -63,6 +63,19 @@ export default function TicketReservePage() {
       const liveData = liveSnap.data();
       setLive(liveData);
 
+      // 既存予約の取得と在庫チェック
+      const ticketId = `${id}_${user!.uid}`;
+      const ticketRef = doc(db, "tickets", ticketId);
+      const ticketSnap = await getDoc(ticketRef);
+
+      // 新規予約かつ在庫なしの判定
+      if (!ticketSnap.exists() && (liveData.totalReserved || 0) >= (liveData.ticketStock || 0)) {
+        hideSpinner();
+        await showDialog("大変申し訳ございません。予定枚数に達したため、新規予約を終了いたしました。", true);
+        router.push(`/live-detail/${id}`);
+        return;
+      }
+
       const maxComp = liveData.maxCompanions || 0;
 
       // メンバーチェック
@@ -73,11 +86,6 @@ export default function TicketReservePage() {
       
       // 切り替え時にすぐ入力欄が出るよう、常に maxComp 分の空配列を準備しておく
       const emptyCompanions = Array(maxComp).fill("");
-
-      // 既存予約の取得
-      const ticketId = `${id}_${user!.uid}`;
-      const ticketRef = doc(db, "tickets", ticketId);
-      const ticketSnap = await getDoc(ticketRef);
 
       if (ticketSnap.exists()) {
         const tData = ticketSnap.data();
