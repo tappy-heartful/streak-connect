@@ -308,14 +308,3 @@
   background: #b61a15;
   transform: translateY(-2px);
 }
-
-.btn-back-home {
-  color: #888;
-  text-decoration: none;
-  font-size: 0.9rem;
-  transition: 0.3s;
-}
-
-.btn-back-home:hover {
-  color: #fff;
-}
