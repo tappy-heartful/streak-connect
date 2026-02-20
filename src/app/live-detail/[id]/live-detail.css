@@ -1,3 +1,54 @@
+/* --- 在庫バッジの共通設定 --- */
+.sold-out-badge-detail,
+.low-stock-badge-detail {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 8px 16px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.05em;
+}
+
+/* 完売：黒背景に白文字 */
+.sold-out-badge-detail {
+  background-color: #000;
+  color: #fff;
+  border: 1px solid #fff;
+}
+
+/* 残りわずか：赤背景に白文字 */
+.low-stock-badge-detail {
+  background-color: #ff9800;
+  color: #fff;
+}
+
+/* --- ボタンのバリエーション --- */
+
+/* 予約済みラベル（日付の横に出るやつ） */
+.reserved-label {
+  margin-left: 10px;
+  font-size: 0.75rem;
+  background: #e7211a;
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 4px;
+  vertical-align: middle;
+  display: inline-block;
+  font-weight: bold;
+}
+
+/* 受付期間のテキスト */
+.accept-period {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: #ccc;
+  text-align: center;
+}
+
 /* --- フライヤー画像エリア --- */
 .flyer-wrapper {
     width: 100%;
