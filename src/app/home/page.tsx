@@ -32,16 +32,15 @@ export default function HomePage() {
   const [loadingLives, setLoadingLives] = useState(true);
   const [loadingMedias, setLoadingMedias] = useState(true);
   
-  // 💡 ユーザーが予約しているチケット情報を保持する（キーは liveId）
   const [userTickets, setUserTickets] = useState<{ [liveId: string]: string }>({});
 
   const members = [
     { name: 'Shoei Matsushita', role: 'Guitar / Band Master', origin: 'Ehime' },
     { name: 'Miku Nozoe', role: 'Trumpet / Lead Trumpet', origin: 'Ehime' },
-    { name: 'Takumi Fujimoto', role: 'Saxophne / Lead Alto Sax', origin: 'Hiroshima' },
+    { name: 'Takumi Fujimoto', role: 'Saxophone / Lead Alto Sax', origin: 'Hiroshima' },
     { name: 'Kana Asahiro', role: 'Trombone / Lead Trombone', origin: 'Nara' },
     { name: 'Hiroto Murakami', role: 'Trombone / Section Leader', origin: 'Ehime' },
-    { name: 'Shunta Yabu', role: 'Saxophne / Section Leader', origin: 'Hiroshima' },
+    { name: 'Shunta Yabu', role: 'Saxophone / Section Leader', origin: 'Hiroshima' },
     { name: 'Akito Kimura', role: 'Drums', origin: 'Okayama' },
     { name: 'Yojiro Nakagawa', role: 'Bass', origin: 'Hiroshima' },
   ];
@@ -95,9 +94,7 @@ export default function HomePage() {
     fetchMedias();
   }, []);
 
-// 💡 ログインしている場合、ユーザーの予約状況を取得する
   useEffect(() => {
-    // user が null または undefined の場合は処理を中断する
     if (!user?.uid) {
       setUserTickets({});
       return;
@@ -105,7 +102,6 @@ export default function HomePage() {
 
     async function fetchUserTickets() {
       try {
-        // ここで user.uid は確実に存在することが保証される
         const q = query(collection(db, "tickets"), where("uid", "==", user!.uid));
         const snapshot = await getDocs(q);
         const ticketMap: { [liveId: string]: string } = {};
@@ -123,7 +119,7 @@ export default function HomePage() {
     }
     
     fetchUserTickets();
-  }, [user]); // userが変わるたびに実行
+  }, [user]);
 
   useEffect(() => {
     if (medias.length > 0) {
@@ -138,11 +134,12 @@ export default function HomePage() {
 
   const handleReserveClick = async (liveId: string) => {
     if (!user) {
-      const ok = await showDialog("予約にはログインが必要です。\nログイン画面へ移動しますか？");
+      const ok = await showDialog("予約またはチケット確認にはログインが必要です。\nログイン画面へ移動しますか？");
       if (!ok) return;
 
       try {
         showSpinner();
+        // 完売時（予約済み確認）でも予約変更画面でも、ログイン後は対象の予約/詳細に飛ばす
         const currentUrl = window.location.origin + '/ticket-reserve/' + liveId;
         const fetchUrl = `${globalGetLineLoginUrl}&redirectAfterLogin=${encodeURIComponent(currentUrl)}`;
         const res = await fetch(fetchUrl);
@@ -173,7 +170,6 @@ export default function HomePage() {
 
   return (
     <main>
-      {/* HERO */}
       <section className={styles.homeHero}>
         <div className={styles.homeHeroContent}>
           <h1 className={styles.bandName}>
@@ -186,7 +182,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* UPCOMING LIVES */}
       <section className="content-section">
         <div className="inner">
           <h2 className="section-title">UPCOMING LIVES</h2>
@@ -196,37 +191,50 @@ export default function HomePage() {
             ) : lives.length === 0 ? (
               <p className="no-data">No information available.</p>
             ) : (
-              lives.map((live) => (
-                <div key={live.id} className={styles.ticketCard}>
-                  <Link href={`/live-detail/${live.id}`} className={styles.ticketImgLink}>
-                    <div className={styles.ticketImgWrapper}>
-                      <img 
-                        src={live.flyerUrl || 'https://tappy-heartful.github.io/streak-images/connect/favicon.png'} 
-                        className={styles.ticketImg} 
-                        alt="flyer" 
-                      />
-                      <div className={styles.imgOverlay}>VIEW INFO</div>
-                    </div>
-                  </Link>
-                  
-                  <div className={styles.ticketInfo}>
-                    <div className={styles.tDate}>{live.date}</div>
-                    <h3 className={styles.tTitle}>{live.title}</h3>
-                    <div className={styles.tDetails}>
-                      <div><i className="fa-solid fa-location-dot"></i> {live.venue}</div>
-                      <div><i className="fa-solid fa-clock"></i> Open {live.open} / Start {live.start}</div>
-                      <div><i className="fa-solid fa-ticket"></i> 前売：{live.advance}</div>
-                      <div><i className="fa-solid fa-ticket"></i> 当日：{live.door}</div>
-                    </div>
-                    
-                    <div className={styles.liveActions}>
-                      <Link href={`/live-detail/${live.id}`} className={styles.btnDetail}>
-                        詳細 / VIEW INFO
-                      </Link>
+              lives.map((live) => {
+                // 在庫ロジックの計算
+                const max = live.ticketStock || 0;
+                const current = live.totalReserved || 0;
+                const isSoldOut = max > 0 && current >= max;
+                const isLowStock = !isSoldOut && max > 0 && (max - current) <= (max * 0.2);
+                const isAccepting = canShowReserveBtn(live);
 
-                      {/* 💡 ボタン表示ロジックの修正 */}
-                      {userTickets[live.id] ? (
-                        // 予約済みの場合
+                return (
+                  <div key={live.id} className={styles.ticketCard}>
+                    <Link href={`/live-detail/${live.id}`} className={styles.ticketImgLink}>
+                      <div className={styles.ticketImgWrapper}>
+                        <img 
+                          src={live.flyerUrl || 'https://tappy-heartful.github.io/streak-images/connect/favicon.png'} 
+                          className={styles.ticketImg} 
+                          alt="flyer" 
+                        />
+                        {/* バッジ表示 */}
+                        {isSoldOut ? (
+                          <div className={styles.soldOutBadge}>SOLD OUT</div>
+                        ) : (isAccepting && isLowStock) ? (
+                          <div className={styles.lowStockBadge}>あとわずか</div>
+                        ) : null}
+                        <div className={styles.imgOverlay}>VIEW INFO</div>
+                      </div>
+                    </Link>
+                    
+                    <div className={styles.ticketInfo}>
+                      <div className={styles.tDate}>{live.date}</div>
+                      <h3 className={styles.tTitle}>{live.title}</h3>
+                      <div className={styles.tDetails}>
+                        <div><i className="fa-solid fa-location-dot"></i> {live.venue}</div>
+                        <div><i className="fa-solid fa-clock"></i> Open {live.open} / Start {live.start}</div>
+                        <div><i className="fa-solid fa-ticket"></i> 前売：{live.advance}</div>
+                        <div><i className="fa-solid fa-ticket"></i> 当日：{live.door}</div>
+                      </div>
+                      
+                      <div className={styles.liveActions}>
+                        <Link href={`/live-detail/${live.id}`} className={styles.btnDetail}>
+                          詳細 / VIEW INFO
+                        </Link>
+
+                        {userTickets[live.id] ? (
+                        // 1. 予約済みの場合：完売していても「表示」と「変更」の両方を出す
                         <>
                           <Link
                             href={`/ticket-detail/${userTickets[live.id]}`}
@@ -235,8 +243,8 @@ export default function HomePage() {
                             チケットを表示 / VIEW TICKET
                           </Link>
                           
-                          {/* 💡 予約済み、かつ「まだ予約受付期間内」なら変更ボタンを出す */}
-                          {canShowReserveBtn(live) && (
+                          {/* 受付期間内であれば、完売(isSoldOut)に関係なく変更ボタンを表示 */}
+                          {isAccepting && (
                             <button
                               onClick={() => handleReserveClick(live.id)}
                               className={styles.btnReserve}
@@ -246,26 +254,42 @@ export default function HomePage() {
                           )}
                         </>
                       ) : (
-                        // 未予約かつ受付中の場合
-                        canShowReserveBtn(live) && (
-                          <button 
-                            onClick={() => handleReserveClick(live.id)} 
-                            className={styles.btnReserve}
-                          >
-                            予約 / RESERVE TICKET
-                          </button>
+                        // 2. 未予約の場合
+                        isAccepting && (
+                          <>
+                            {!user ? (
+                              // 未ログイン時：完売なら専用ラベル、空きがあれば通常ラベル
+                              <button 
+                                onClick={() => handleReserveClick(live.id)} 
+                                className={styles.btnReserve}
+                              >
+                                {isSoldOut ? "予約済みの方はこちら" : "予約 / RESERVE TICKET"}
+                              </button>
+                            ) : (
+                              // ログイン済、且つ未予約時：在庫がある時だけボタンを表示
+                              !isSoldOut && (
+                                <button 
+                                  onClick={() => handleReserveClick(live.id)} 
+                                  className={styles.btnReserve}
+                                >
+                                  予約 / RESERVE TICKET
+                                </button>
+                              )
+                            )}
+                          </>
                         )
                       )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
       </section>
 
-      {/* CONCEPT */}
+      {/* --- 以降、Concept, MEMBERS, SNS, STORE, HISTORY, PHOTOS セクションは変更なし --- */}
       <section className="content-section" id="concept">
         <div className="inner">
           <h2 className="section-title">Concept</h2>
@@ -278,7 +302,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* MEMBERS */}
       <section className="content-section">
         <div className="inner">
           <h2 className="section-title">CORE MEMBERS</h2>
@@ -305,7 +328,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* SNS */}
       <section className="content-section">
         <div className="inner">
           <h2 className="section-title">Follow Us</h2>
@@ -322,7 +344,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* STORE */}
       <section className="content-section">
         <div className="inner">
           <h2 className="section-title">Official Store</h2>
@@ -346,7 +367,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* HISTORY */}
       <section className={`content-section ${styles.bgDarker}`}>
         <div className="inner">
           <h2 className="section-title">HISTORY</h2>
@@ -374,7 +394,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* PHOTOS */}
       <section className="content-section">
         <div className="inner">
           <h2 className="section-title">PHOTOS</h2>
