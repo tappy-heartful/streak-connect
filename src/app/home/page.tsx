@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react";
 import { db } from "@/src/lib/firebase";
 import { collection, query, orderBy, getDocs, limit, where } from "firebase/firestore";
-import { 
-  buildInstagramHtml, 
-  formatDateToYMDDot, 
-  showSpinner, 
-  hideSpinner, 
-  showDialog, 
+import {
+  buildInstagramHtml,
+  formatDateToYMDDot,
+  showSpinner,
+  hideSpinner,
+  showDialog,
   globalGetLineLoginUrl ,
   showImagePreview
 } from "@/src/lib/functions";
@@ -31,14 +31,14 @@ export default function HomePage() {
   const [medias, setMedias] = useState<any[]>([]);
   const [loadingLives, setLoadingLives] = useState(true);
   const [loadingMedias, setLoadingMedias] = useState(true);
-  
+
   const [userTickets, setUserTickets] = useState<{ [liveId: string]: string }>({});
 
   const members = [
     { name: 'Shoei Matsushita', role: 'Guitar / Band Master', origin: 'Ehime' },
     { name: 'Miku Nozoe', role: 'Trumpet / Lead Trumpet', origin: 'Ehime' },
     { name: 'Takumi Fujimoto', role: 'Saxophone / Lead Alto Sax', origin: 'Hiroshima' },
-    { name: 'Kana Asahiro', role: 'Trombone / Lead Trombone', origin: 'Nara' },
+    { name: 'Kana Asahiro', role: 'Trombone', origin: 'Nara' },
     { name: 'Hiroto Murakami', role: 'Trombone / Section Leader', origin: 'Ehime' },
     { name: 'Shunta Yabu', role: 'Saxophone / Section Leader', origin: 'Hiroshima' },
     { name: 'Akito Kimura', role: 'Drums', origin: 'Okayama' },
@@ -105,11 +105,11 @@ export default function HomePage() {
         const q = query(collection(db, "tickets"), where("uid", "==", user!.uid));
         const snapshot = await getDocs(q);
         const ticketMap: { [liveId: string]: string } = {};
-        
+
         snapshot.docs.forEach(doc => {
           const data = doc.data();
           if (data.liveId) {
-            ticketMap[data.liveId] = doc.id; 
+            ticketMap[data.liveId] = doc.id;
           }
         });
         setUserTickets(ticketMap);
@@ -117,7 +117,7 @@ export default function HomePage() {
         console.error("Tickets fetch error:", e);
       }
     }
-    
+
     fetchUserTickets();
   }, [user]);
 
@@ -203,10 +203,10 @@ export default function HomePage() {
                   <div key={live.id} className={styles.ticketCard}>
                     <Link href={`/live-detail/${live.id}`} className={styles.ticketImgLink}>
                       <div className={styles.ticketImgWrapper}>
-                        <img 
-                          src={live.flyerUrl || 'https://tappy-heartful.github.io/streak-images/connect/favicon.png'} 
-                          className={styles.ticketImg} 
-                          alt="flyer" 
+                        <img
+                          src={live.flyerUrl || 'https://tappy-heartful.github.io/streak-images/connect/favicon.png'}
+                          className={styles.ticketImg}
+                          alt="flyer"
                         />
                         {/* バッジ表示 */}
                         {isSoldOut ? (
@@ -217,7 +217,7 @@ export default function HomePage() {
                         <div className={styles.imgOverlay}>VIEW INFO</div>
                       </div>
                     </Link>
-                    
+
                     <div className={styles.ticketInfo}>
                       <div className={styles.tDate}>{live.date}</div>
                       <h3 className={styles.tTitle}>{live.title}</h3>
@@ -227,7 +227,7 @@ export default function HomePage() {
                         <div><i className="fa-solid fa-ticket"></i> 前売：{live.advance}</div>
                         <div><i className="fa-solid fa-ticket"></i> 当日：{live.door}</div>
                       </div>
-                      
+
                       <div className={styles.liveActions}>
                         <Link href={`/live-detail/${live.id}`} className={styles.btnDetail}>
                           詳細 / VIEW INFO
@@ -242,7 +242,7 @@ export default function HomePage() {
                           >
                             チケットを表示 / VIEW TICKET
                           </Link>
-                          
+
                           {/* 受付期間内であれば、完売(isSoldOut)に関係なく変更ボタンを表示 */}
                           {isAccepting && (
                             <button
@@ -259,8 +259,8 @@ export default function HomePage() {
                           <>
                             {!user ? (
                               // 未ログイン時：完売なら専用ラベル、空きがあれば通常ラベル
-                              <button 
-                                onClick={() => handleReserveClick(live.id)} 
+                              <button
+                                onClick={() => handleReserveClick(live.id)}
                                 className={styles.btnReserve}
                               >
                                 {isSoldOut ? "予約済みの方はこちら" : "予約 / RESERVE TICKET"}
@@ -268,8 +268,8 @@ export default function HomePage() {
                             ) : (
                               // ログイン済、且つ未予約時：在庫がある時だけボタンを表示
                               !isSoldOut && (
-                                <button 
-                                  onClick={() => handleReserveClick(live.id)} 
+                                <button
+                                  onClick={() => handleReserveClick(live.id)}
                                   className={styles.btnReserve}
                                 >
                                   予約 / RESERVE TICKET
@@ -309,10 +309,10 @@ export default function HomePage() {
             {members.map((m) => (
               <div key={m.name} className={styles.memberCard}>
                 <div className={styles.memberImgWrapper}>
-                  <img 
-                    src={`https://tappy-heartful.github.io/streak-images/connect/members/${m.name}.jpg`} 
-                    alt={m.name} 
-                    className={styles.memberImg} 
+                  <img
+                    src={`https://tappy-heartful.github.io/streak-images/connect/members/${m.name}.jpg`}
+                    alt={m.name}
+                    className={styles.memberImg}
                   />
                 </div>
                 <div className={styles.memberInfoContent}>
@@ -350,11 +350,11 @@ export default function HomePage() {
           <div className={styles.goodsContainer}>
             <div className={styles.horizontalScroll}>
               {goodsItems.map((item, i) => (
-                <img 
-                  key={i} 
-                  src={`https://tappy-heartful.github.io/streak-images/connect/goods/${item}`} 
-                  alt="Goods" 
-                  className={styles.squareImg} 
+                <img
+                  key={i}
+                  src={`https://tappy-heartful.github.io/streak-images/connect/goods/${item}`}
+                  alt="Goods"
+                  className={styles.squareImg}
                 />
               ))}
             </div>
@@ -381,10 +381,10 @@ export default function HomePage() {
                     <h3 className={styles.mediaTitle}>{m.title}</h3>
                   </div>
                   <div className={styles.mediaBody}>
-                    <div 
-                      dangerouslySetInnerHTML={{ 
-                        __html: buildInstagramHtml(m.instagramUrl) 
-                      }} 
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: buildInstagramHtml(m.instagramUrl)
+                      }}
                     />
                   </div>
                 </div>
@@ -401,8 +401,8 @@ export default function HomePage() {
           {activityPhotos.map((fileName) => {
             const url = `https://tappy-heartful.github.io/streak-images/connect/photos/${fileName}`;
             return (
-              <div 
-                key={fileName} 
+              <div
+                key={fileName}
                 className={styles.photoItem}
                 onClick={() => showImagePreview(url)}
                 style={{ cursor: 'zoom-in' }}
