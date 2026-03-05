@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { db } from "@/src/lib/firebase";
-import { 
-  doc, getDoc, runTransaction, serverTimestamp, deleteField 
+import {
+  doc, getDoc, runTransaction, serverTimestamp, deleteField
 } from "firebase/firestore";
-import { 
-  showSpinner, hideSpinner, showDialog, 
+import {
+  showSpinner, hideSpinner, showDialog,
   writeLog
 } from "@/src/lib/functions";
 import Link from "next/link";
@@ -28,11 +28,11 @@ export default function TicketReservePage() {
 
   const [live, setLive] = useState<any>(null);
   const [resType, setResType] = useState<"invite" | "general">("general");
-  
+
   // 一般予約用
   const [representativeName, setRepresentativeName] = useState("");
   const [generalCompanions, setGeneralCompanions] = useState<string[]>([]);
-  
+
   // 招待予約用 (グループ管理)
   const [inviteGroups, setInviteGroups] = useState<ReserveGroup[]>([]);
 
@@ -83,7 +83,7 @@ export default function TicketReservePage() {
       const userSnap = await getDoc(userRef);
       const memberStatus = userSnap.exists();
       setIsMember(memberStatus);
-      
+
       // 切り替え時にすぐ入力欄が出るよう、常に maxComp 分の空配列を準備しておく
       const emptyCompanions = Array(maxComp).fill("");
 
@@ -198,7 +198,7 @@ export default function TicketReservePage() {
           throw new Error("完売または残席不足です。");
         }
 
-        const baseNo = existingTicket?.reservationNo?.split('-')[0] || 
+        const baseNo = existingTicket?.reservationNo?.split('-')[0] ||
                        Math.floor(1000 + Math.random() * 9000).toString();
 
         // 共通データ
@@ -208,6 +208,7 @@ export default function TicketReservePage() {
           resType: resType,
           totalCount: totalCount,
           isLineNotified: false,
+          isReminderSent: false,
           updatedAt: serverTimestamp(),
           reservationNo: baseNo,
         };
@@ -327,10 +328,10 @@ export default function TicketReservePage() {
                     <label>代表者様 <span className="required">必須</span></label>
                     <p className="form-note">※個人情報保護のため、なるべくニックネームで入力してください</p>
                     <div className="input-row">
-                      <input 
-                        type="text" 
-                        value={representativeName} 
-                        onChange={(e) => setRepresentativeName(e.target.value)} 
+                      <input
+                        type="text"
+                        value={representativeName}
+                        onChange={(e) => setRepresentativeName(e.target.value)}
                         required={resType === "general"}
                         placeholder="例：ステレオ 太郎"
                       />
@@ -345,14 +346,14 @@ export default function TicketReservePage() {
                     <div className="form-group" key={index}>
                       <label>ゲスト {index + 1}</label>
                       <div className="input-row">
-                        <input 
-                          type="text" 
-                          value={name} 
+                        <input
+                          type="text"
+                          value={name}
                           onChange={(e) => {
                             const newComps = [...generalCompanions];
                             newComps[index] = e.target.value;
                             setGeneralCompanions(newComps);
-                          }} 
+                          }}
                           placeholder="例：友達、親戚"
                         />
                         <span className="honorific">様</span>
@@ -386,8 +387,8 @@ export default function TicketReservePage() {
                       <div className="form-group group-name-row">
                         <label>グループ名</label>
                         <div className="input-row">
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             value={group.groupName}
                             onChange={(e) => {
                               const newGroups = [...inviteGroups];
@@ -404,14 +405,14 @@ export default function TicketReservePage() {
                         <div className="form-group guest-input-group" key={cIndex}>
                           <label>ゲスト {cIndex + 1}</label>
                           <div className="input-row">
-                            <input 
-                              type="text" 
-                              value={name} 
+                            <input
+                              type="text"
+                              value={name}
                               onChange={(e) => {
                                 const newGroups = [...inviteGroups];
                                 newGroups[gIndex].companions[cIndex] = e.target.value;
                                 setInviteGroups(newGroups);
-                              }} 
+                              }}
                               placeholder="例：ニックネーム"
                             />
                             <span className="honorific">様</span>
