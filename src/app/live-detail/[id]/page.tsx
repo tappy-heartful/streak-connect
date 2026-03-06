@@ -5,15 +5,16 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { db } from "@/src/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { 
-  showSpinner, hideSpinner, showDialog, 
+import {
+  showSpinner, hideSpinner, showDialog,
   deleteTicket, formatDateToYMDDot , globalGetLineLoginUrl,
 } from "@/src/lib/functions";
 import Link from "next/link";
 import "./live-detail.css";
+import YoutubeSetlistPlayer from "@/src/components/YoutubeSetlistPlayer";
 
 export default function LiveDetailPage() {
-  const { id } = useParams(); 
+  const { id } = useParams();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -91,7 +92,7 @@ export default function LiveDetailPage() {
 
   // --- ロジック判定 ---
   const todayStr = formatDateToYMDDot(new Date());
-  
+
   // 期間判定
   const isAccepting = live.isAcceptReserve === true;
   const isPast = live.date < todayStr;
@@ -127,7 +128,7 @@ export default function LiveDetailPage() {
             {/* フライヤー画像エリア */}
             <div className="flyer-wrapper" style={{ position: "relative" }}>
               {live.flyerUrl && <img src={live.flyerUrl} alt="Flyer" />}
-              
+
               {/* バッジ表示 */}
               {isSoldOut ? (
                 <div className="sold-out-badge-detail">SOLD OUT</div>
@@ -143,7 +144,7 @@ export default function LiveDetailPage() {
                 {isReserved && <span className="reserved-label">予約済み</span>}
               </div>
               <h2 className="l-title">{live.title}</h2>
-              
+
               <div className="info-list">
                 <div className="info-item">
                   <i className="fa-solid fa-location-dot"></i>
@@ -184,14 +185,14 @@ export default function LiveDetailPage() {
                 <i className="fa-solid fa-users"></i>
                 <div className="val">お一人様 {live.maxCompanions}名様まで同伴可能</div>
               </div>
-              
+
               {!isSoldOut && (
                 <div className="info-item" style={{marginBottom: "20px"}}>
                   <i className="fa-solid fa-circle-info"></i>
                   <div className="val">チケット残数: あと {Math.max(0, max - current)} 枚</div>
                 </div>
               )}
-              
+
               {live.notes && (
                 <div className="live-notes-area">
                   <p className="live-notes-text">{live.notes}</p>
@@ -274,7 +275,7 @@ export default function LiveDetailPage() {
                     {!isSoldOut && live.acceptEndDate && (
                       <p className="accept-period">受付終了: {live.acceptEndDate}</p>
                     )}
-                    
+
                     {isPastOrToday && (
                       <Link href={`/enquete-answer/${id}`} className="btn-action btn-enquete-soft">
                         <i className="fa-solid fa-pen-to-square"></i> アンケートに回答
@@ -285,6 +286,13 @@ export default function LiveDetailPage() {
               </div>
             )}
           </div>
+
+          {/* 2. 開催日以降に表示するアフターコンテンツ（独立した判定） */}
+          {isPastOrToday && (
+            <div className="after-live-content" style={{ marginTop: "30px", borderTop: "1px solid #eee", paddingTop: "30px" }}>
+              <YoutubeSetlistPlayer setlist={live.setlist} title={isPast ? "当日のセットリスト" : "本日のセットリスト"} />
+            </div>
+          )}
         </div>
       </section>
 

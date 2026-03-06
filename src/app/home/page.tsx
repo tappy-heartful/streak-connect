@@ -9,7 +9,7 @@ import {
   showSpinner,
   hideSpinner,
   showDialog,
-  globalGetLineLoginUrl ,
+  globalGetLineLoginUrl,
   showImagePreview
 } from "@/src/lib/functions";
 import { useAuth } from "@/src/contexts/AuthContext";
@@ -27,7 +27,8 @@ export default function HomePage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const [lives, setLives] = useState<any[]>([]);
+  const [upcomingLives, setUpcomingLives] = useState<any[]>([]);
+  const [pastLives, setPastLives] = useState<any[]>([]);
   const [medias, setMedias] = useState<any[]>([]);
   const [loadingLives, setLoadingLives] = useState(true);
   const [loadingMedias, setLoadingMedias] = useState(true);
@@ -66,10 +67,16 @@ export default function HomePage() {
         const snapshot = await getDocs(q);
         const todayStr = formatDateToYMDDot(new Date());
 
-        const livesData = snapshot.docs
-          .map(doc => ({ id: doc.id, ...doc.data() as any }))
-          .filter(live => live.date >= todayStr);
-        setLives(livesData);
+        const allLives = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+
+        // 未来または今日のライブ
+        const upcoming = allLives.filter(live => live.date >= todayStr).reverse(); // 昇順にするためreverse
+        setUpcomingLives(upcoming);
+
+        // 過去のライブ (最新3件)
+        const past = allLives.filter(live => live.date < todayStr).slice(0, 3);
+        setPastLives(past);
+
       } catch (e: any) {
         console.error("Lives fetch error:", e);
       } finally {
@@ -139,7 +146,6 @@ export default function HomePage() {
 
       try {
         showSpinner();
-        // 完売時（予約済み確認）でも予約変更画面でも、ログイン後は対象の予約/詳細に飛ばす
         const currentUrl = window.location.origin + '/ticket-reserve/' + liveId;
         const fetchUrl = `${globalGetLineLoginUrl}&redirectAfterLogin=${encodeURIComponent(currentUrl)}`;
         const res = await fetch(fetchUrl);
@@ -168,6 +174,71 @@ export default function HomePage() {
     return today >= start && today <= end;
   };
 
+  // ライブカードの共通コンポーネント関数
+  const renderLiveCard = (live: any) => {
+    const max = live.ticketStock || 0;
+    const current = live.totalReserved || 0;
+    const isSoldOut = max > 0 && current >= max;
+    const isLowStock = !isSoldOut && max > 0 && (max - current) <= (max * 0.2);
+    const isAccepting = canShowReserveBtn(live);
+    const todayStr = formatDateToYMDDot(new Date());
+    const isPast = live.date < todayStr;
+
+    return (
+      <div key={live.id} className={styles.ticketCard}>
+        <Link href={`/live-detail/${live.id}`} className={styles.ticketImgLink}>
+          <div className={styles.ticketImgWrapper}>
+            <img
+              src={live.flyerUrl || 'https://tappy-heartful.github.io/streak-images/connect/favicon.png'}
+              className={styles.ticketImg}
+              alt="flyer"
+            />
+            {isSoldOut && !isPast && <div className={styles.soldOutBadge}>SOLD OUT</div>}
+            {isPast && <div className={styles.pastBadge} style={{ backgroundColor: '#666', color: '#fff', position: 'absolute', top: '10px', left: '10px', padding: '4px 12px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', zIndex: 2 }}>ARCHIVE</div>}
+            {(isAccepting && isLowStock && !isPast) && <div className={styles.lowStockBadge}>あとわずか</div>}
+            <div className={styles.imgOverlay}>VIEW INFO</div>
+          </div>
+        </Link>
+
+        <div className={styles.ticketInfo}>
+          <div className={styles.tDate}>{live.date}</div>
+          <h3 className={styles.tTitle}>{live.title}</h3>
+          <div className={styles.tDetails}>
+            <div><i className="fa-solid fa-location-dot"></i> {live.venue}</div>
+            <div><i className="fa-solid fa-clock"></i> Open {live.open} / Start {live.start}</div>
+          </div>
+
+          <div className={styles.liveActions}>
+            <Link href={`/live-detail/${live.id}`} className={styles.btnDetail}>
+              詳細 / VIEW INFO
+            </Link>
+
+            {!isPast && (
+              userTickets[live.id] ? (
+                <>
+                  <Link href={`/ticket-detail/${userTickets[live.id]}`} className={styles.btnTicketDetail}>
+                    チケットを表示 / VIEW TICKET
+                  </Link>
+                  {isAccepting && (
+                    <button onClick={() => handleReserveClick(live.id)} className={styles.btnReserve}>
+                      予約を変更 / EDIT RESERVATION
+                    </button>
+                  )}
+                </>
+              ) : (
+                isAccepting && (
+                  <button onClick={() => handleReserveClick(live.id)} className={styles.btnReserve}>
+                    {!user && isSoldOut ? "予約済みの方はこちら" : "予約 / RESERVE TICKET"}
+                  </button>
+                )
+              )
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <main>
       <section className={styles.homeHero}>
@@ -182,114 +253,37 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* --- UPCOMING LIVES --- */}
       <section className="content-section">
         <div className="inner">
           <h2 className="section-title">UPCOMING LIVES</h2>
           <div className={styles.ticketGrid}>
             {loadingLives ? (
               <p className="loading-text">Checking for upcoming lives...</p>
-            ) : lives.length === 0 ? (
+            ) : upcomingLives.length === 0 ? (
               <p className="no-data">No information available.</p>
             ) : (
-              lives.map((live) => {
-                // 在庫ロジックの計算
-                const max = live.ticketStock || 0;
-                const current = live.totalReserved || 0;
-                const isSoldOut = max > 0 && current >= max;
-                const isLowStock = !isSoldOut && max > 0 && (max - current) <= (max * 0.2);
-                const isAccepting = canShowReserveBtn(live);
-
-                return (
-                  <div key={live.id} className={styles.ticketCard}>
-                    <Link href={`/live-detail/${live.id}`} className={styles.ticketImgLink}>
-                      <div className={styles.ticketImgWrapper}>
-                        <img
-                          src={live.flyerUrl || 'https://tappy-heartful.github.io/streak-images/connect/favicon.png'}
-                          className={styles.ticketImg}
-                          alt="flyer"
-                        />
-                        {/* バッジ表示 */}
-                        {isSoldOut ? (
-                          <div className={styles.soldOutBadge}>SOLD OUT</div>
-                        ) : (isAccepting && isLowStock) ? (
-                          <div className={styles.lowStockBadge}>あとわずか</div>
-                        ) : null}
-                        <div className={styles.imgOverlay}>VIEW INFO</div>
-                      </div>
-                    </Link>
-
-                    <div className={styles.ticketInfo}>
-                      <div className={styles.tDate}>{live.date}</div>
-                      <h3 className={styles.tTitle}>{live.title}</h3>
-                      <div className={styles.tDetails}>
-                        <div><i className="fa-solid fa-location-dot"></i> {live.venue}</div>
-                        <div><i className="fa-solid fa-clock"></i> Open {live.open} / Start {live.start}</div>
-                        <div><i className="fa-solid fa-ticket"></i> 前売：{live.advance}</div>
-                        <div><i className="fa-solid fa-ticket"></i> 当日：{live.door}</div>
-                      </div>
-
-                      <div className={styles.liveActions}>
-                        <Link href={`/live-detail/${live.id}`} className={styles.btnDetail}>
-                          詳細 / VIEW INFO
-                        </Link>
-
-                        {userTickets[live.id] ? (
-                        // 1. 予約済みの場合：完売していても「表示」と「変更」の両方を出す
-                        <>
-                          <Link
-                            href={`/ticket-detail/${userTickets[live.id]}`}
-                            className={styles.btnTicketDetail}
-                          >
-                            チケットを表示 / VIEW TICKET
-                          </Link>
-
-                          {/* 受付期間内であれば、完売(isSoldOut)に関係なく変更ボタンを表示 */}
-                          {isAccepting && (
-                            <button
-                              onClick={() => handleReserveClick(live.id)}
-                              className={styles.btnReserve}
-                            >
-                              予約を変更 / EDIT RESERVATION
-                            </button>
-                          )}
-                        </>
-                      ) : (
-                        // 2. 未予約の場合
-                        isAccepting && (
-                          <>
-                            {!user ? (
-                              // 未ログイン時：完売なら専用ラベル、空きがあれば通常ラベル
-                              <button
-                                onClick={() => handleReserveClick(live.id)}
-                                className={styles.btnReserve}
-                              >
-                                {isSoldOut ? "予約済みの方はこちら" : "予約 / RESERVE TICKET"}
-                              </button>
-                            ) : (
-                              // ログイン済、且つ未予約時：在庫がある時だけボタンを表示
-                              !isSoldOut && (
-                                <button
-                                  onClick={() => handleReserveClick(live.id)}
-                                  className={styles.btnReserve}
-                                >
-                                  予約 / RESERVE TICKET
-                                </button>
-                              )
-                            )}
-                          </>
-                        )
-                      )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
+              upcomingLives.map(live => renderLiveCard(live))
             )}
           </div>
         </div>
       </section>
 
-      {/* --- 以降、Concept, MEMBERS, SNS, STORE, HISTORY, PHOTOS セクションは変更なし --- */}
+      {/* --- PAST LIVES (追加セクション) --- */}
+      {!loadingLives && pastLives.length > 0 && (
+        <section className="content-section" style={{ paddingTop: 0 }}>
+          <div className="inner">
+            <h2 className="section-title" style={{ fontSize: '1.2rem', opacity: 0.7 }}>PAST LIVES</h2>
+            <div className={styles.ticketGrid}>
+              {pastLives.map(live => renderLiveCard(live))}
+            </div>
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+              <p style={{ fontSize: '14px', color: '#888' }}>過去のライブ詳細はアーカイブからご確認いただけます。</p>
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="content-section" id="concept">
         <div className="inner">
           <h2 className="section-title">Concept</h2>
