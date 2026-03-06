@@ -1,7 +1,7 @@
 "use client";
 
 import YoutubeSetlistPlayer from "@/src/components/YoutubeSetlistPlayer";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { db } from "@/src/lib/firebase";
@@ -14,27 +14,12 @@ import {
 import Link from "next/link";
 import styles from "./enquete-answer.module.css";
 
-// --- ユーティリティ関数 ---
-const extractYouTubeId = (input: string) => {
-  if (!input) return "";
-  try {
-    const url = new URL(input);
-    return url.searchParams.get('v') || url.pathname.split('/').pop() || input;
-  } catch {
-    return input;
-  }
-};
-
 export default function EnqueteAnswerPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const router = useRouter();
 
   const [live, setLive] = useState<any>(null);
-  const [setlistVideoIds, setSetlistVideoIds] = useState<string[]>([]);
-  // 現在表示中の動画インデックス
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-
   const [questions, setQuestions] = useState<any[]>([]);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [fetching, setFetching] = useState(true);
@@ -47,6 +32,7 @@ export default function EnqueteAnswerPage() {
   const loadData = async () => {
     showSpinner();
     try {
+      // 1. ライブ情報の取得
       const liveRef = doc(db, "lives", id as string);
       const liveSnap = await getDoc(liveRef);
       if (!liveSnap.exists()) {
@@ -54,43 +40,16 @@ export default function EnqueteAnswerPage() {
         router.push("/");
         return;
       }
-      const liveData = liveSnap.data();
-      setLive(liveData);
+      setLive(liveSnap.data());
 
-      if (liveData.setlist && Array.isArray(liveData.setlist)) {
-        const allSongIds = liveData.setlist.flatMap((item: any) => item.songIds || []);
-
-        if (allSongIds.length > 0) {
-          const uniqueSongIds = Array.from(new Set(allSongIds)) as string[];
-          const scoresRef = collection(db, "scores");
-          const q = query(scoresRef, where("__name__", "in", uniqueSongIds.slice(0, 30)));
-          const scoresSnap = await getDocs(q);
-
-          const videoIdMap: Record<string, string> = {};
-          scoresSnap.docs.forEach(doc => {
-            const data = doc.data();
-            if (data.referenceTrack) {
-              const vid = extractYouTubeId(data.referenceTrack);
-              if (vid && vid.length === 11) {
-                videoIdMap[doc.id] = vid;
-              }
-            }
-          });
-
-          const vids = allSongIds
-            .map(sid => videoIdMap[sid as string])
-            .filter(Boolean);
-
-          setSetlistVideoIds(vids);
-        }
-      }
-
+      // 2. 設問の取得
       const qRef = doc(db, "configs", "enqueteQuestions");
       const qSnap = await getDoc(qRef);
       if (qSnap.exists()) {
         const qData = qSnap.data().questions || [];
         setQuestions(qData);
 
+        // 3. 既存回答の取得（ログイン時のみ）
         let existingAnswers: Record<string, any> = {};
         if (user) {
           const ansRef = collection(db, "enqueteAnswers");
@@ -216,8 +175,8 @@ export default function EnqueteAnswerPage() {
             <h2 className={styles.liveTitleText}>{live?.title}</h2>
           </div>
 
-          {/* 切り出したコンポーネントを呼ぶだけ */}
-          <YoutubeSetlistPlayer videoIds={setlistVideoIds} />
+          {/* セットリスト配列を渡すだけでYouTube再生リストを自動生成 */}
+          <YoutubeSetlistPlayer setlist={live?.setlist} />
 
           <div className={styles.formWrapper}>
             <form onSubmit={handleSubmit}>

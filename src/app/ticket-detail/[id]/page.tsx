@@ -5,18 +5,19 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { db } from "@/src/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { 
-  showSpinner, hideSpinner, showDialog, 
-  deleteTicket, formatDateToYMDDot 
+import {
+  showSpinner, hideSpinner, showDialog,
+  deleteTicket, formatDateToYMDDot
 } from "@/src/lib/functions";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import "./ticket-detail.css";
+import YoutubeSetlistPlayer from "@/src/components/YoutubeSetlistPlayer";
 
 export default function TicketDetailPage() {
   const { id } = useParams();
   const searchParams = useSearchParams();
-  const groupIndexParam = searchParams.get("g"); 
+  const groupIndexParam = searchParams.get("g");
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -25,6 +26,7 @@ export default function TicketDetailPage() {
   const [fetching, setFetching] = useState(true);
 
   const isGuestView = !!groupIndexParam;
+  const isPastOrToday = live && live.date <= formatDateToYMDDot(new Date());
 
   useEffect(() => {
     if (!id) return;
@@ -111,7 +113,7 @@ export default function TicketDetailPage() {
   const renderInviteGroupCard = (group: any, index: number) => {
     const groupUrl = `${window.location.origin}/ticket-detail/${id}?g=${index + 1}`;
     const qrValue = `${id}_g${index + 1}`;
-    
+
     return (
       <div key={index} className="ticket-card detail-mode invite-group-card">
         <div className="group-name-badge">{ticket.representativeName} 様よりご招待</div>
@@ -131,12 +133,12 @@ export default function TicketDetailPage() {
 
         <div className="qr-wrapper">
           <div className="qrcode-container">
-            <QRCodeSVG 
-              value={qrValue} 
-              size={180} 
-              bgColor={"#ffffff"} 
-              fgColor={"#000000"} 
-              level={"M"} 
+            <QRCodeSVG
+              value={qrValue}
+              size={180}
+              bgColor={"#ffffff"}
+              fgColor={"#000000"}
+              level={"M"}
               marginSize={4}
             />
           </div>
@@ -215,12 +217,12 @@ export default function TicketDetailPage() {
 
               <div className="qr-wrapper">
                 <div className="qrcode-container">
-                  <QRCodeSVG 
-                    value={id as string} 
-                    size={180} 
-                    bgColor={"#ffffff"} 
-                    fgColor={"#000000"} 
-                    level={"M"} 
+                  <QRCodeSVG
+                    value={id as string}
+                    size={180}
+                    bgColor={"#ffffff"}
+                    fgColor={"#000000"}
+                    level={"M"}
                     marginSize={4}
                   />
                 </div>
@@ -251,7 +253,7 @@ export default function TicketDetailPage() {
 
           <div className="live-actions">
             <div className="reserved-actions">
-              
+
               {/* 1. 所有者向けの操作 (予約変更・削除) */}
               {isOwner && canModify && (
                 <>
@@ -287,6 +289,13 @@ export default function TicketDetailPage() {
 
             </div>
           </div>
+
+          {/* 2. 開催日以降に表示するアフターコンテンツ（独立した判定） */}
+          {isPastOrToday && (
+            <div className="after-live-content" style={{ marginTop: "30px", borderTop: "1px solid #eee", paddingTop: "30px" }}>
+              <YoutubeSetlistPlayer setlist={live.setlist} title={isPast ? "当日のセットリスト" : "本日のセットリスト"} />
+            </div>
+          )}
         </div>
       </section>
 
