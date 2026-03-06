@@ -1,5 +1,6 @@
 "use client";
 
+import YoutubeSetlistPlayer from "@/src/components/YoutubeSetlistPlayer";
 import { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
@@ -120,28 +121,6 @@ export default function EnqueteAnswerPage() {
     }
   };
 
-  // --- YouTube プレイヤー操作 ---
-  const handlePrevVideo = () => {
-    setCurrentVideoIndex((prev) => (prev > 0 ? prev - 1 : setlistVideoIds.length - 1));
-  };
-
-  const handleNextVideo = () => {
-    setCurrentVideoIndex((prev) => (prev < setlistVideoIds.length - 1 ? prev + 1 : 0));
-  };
-
-  const embedUrl = useMemo(() => {
-    if (setlistVideoIds.length === 0) return "";
-    const currentId = setlistVideoIds[currentVideoIndex];
-    // playlistパラメータに全IDを渡すことで、YouTube側のUIでもリストとして扱えるようにする
-    const playlist = setlistVideoIds.join(",");
-    return `https://www.youtube.com/embed/${currentId}?playlist=${playlist}&loop=1`;
-  }, [setlistVideoIds, currentVideoIndex]);
-
-  const playlistLink = useMemo(() => {
-    if (setlistVideoIds.length === 0) return "";
-    return `https://www.youtube.com/watch_videos?video_ids=${setlistVideoIds.join(',')}`;
-  }, [setlistVideoIds]);
-
   const getProgress = () => {
     const requiredQuestions = questions.filter(q => q.required);
     if (requiredQuestions.length === 0) return 100;
@@ -237,53 +216,8 @@ export default function EnqueteAnswerPage() {
             <h2 className={styles.liveTitleText}>{live?.title}</h2>
           </div>
 
-          {/* --- セットリスト・プレイヤーセクション --- */}
-          {setlistVideoIds.length > 0 && (
-            <div className={styles.playlistSection} style={{ marginBottom: '40px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'bold' }}>
-                  <i className="fa-solid fa-list-ol" style={{ marginRight: '8px', color: '#f00' }}></i>
-                  本日のセットリスト
-                </h3>
-                <a href={playlistLink} target="_blank" rel="noreferrer" className="btn-yt-playlist">
-                  <i className="fa-brands fa-youtube"></i> すべて再生
-                </a>
-              </div>
-
-              <div className="yt-player-container">
-                {/* プレイヤー本体 */}
-                <div className="yt-video-wrapper">
-                  <iframe
-                    src={embedUrl}
-                    allow="autoplay; encrypted-media"
-                    allowFullScreen
-                  ></iframe>
-                </div>
-
-                {/* コントロールパネル */}
-                <div className="yt-controls">
-                  <button type="button" onClick={handlePrevVideo} className="yt-control-btn">
-                    <i className="fa-solid fa-chevron-left"></i>
-                    <span>Prev</span>
-                  </button>
-
-                  <div className="yt-status-info">
-                    <span className="yt-counter">
-                      {String(currentVideoIndex + 1).padStart(2, '0')}
-                      <span className="yt-counter-sep">/</span>
-                      {String(setlistVideoIds.length).padStart(2, '0')}
-                    </span>
-                    <span className="yt-label">TRACK NUMBER</span>
-                  </div>
-
-                  <button type="button" onClick={handleNextVideo} className="yt-control-btn">
-                    <i className="fa-solid fa-chevron-right"></i>
-                    <span>Next</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* 切り出したコンポーネントを呼ぶだけ */}
+          <YoutubeSetlistPlayer videoIds={setlistVideoIds} />
 
           <div className={styles.formWrapper}>
             <form onSubmit={handleSubmit}>
