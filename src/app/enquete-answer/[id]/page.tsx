@@ -237,6 +237,7 @@ export default function EnqueteAnswerPage() {
             <h2 className={styles.liveTitleText}>{live?.title}</h2>
           </div>
 
+          {/* --- セットリスト・プレイヤーセクション --- */}
           {setlistVideoIds.length > 0 && (
             <div className={styles.playlistSection} style={{ marginBottom: '40px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -244,92 +245,40 @@ export default function EnqueteAnswerPage() {
                   <i className="fa-solid fa-list-ol" style={{ marginRight: '8px', color: '#f00' }}></i>
                   本日のセットリスト
                 </h3>
-                <a href={playlistLink} target="_blank" rel="noreferrer" className={styles.playlistButton} style={{
-                  backgroundColor: '#f00', color: '#fff', padding: '6px 14px', borderRadius: '20px', fontSize: '0.75rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 'bold', boxShadow: '0 2px 8px rgba(255,0,0,0.3)'
-                }}>
-                  <i className="fa-brands fa-youtube"></i> YouTube
+                <a href={playlistLink} target="_blank" rel="noreferrer" className="btn-yt-playlist">
+                  <i className="fa-brands fa-youtube"></i> すべて再生
                 </a>
               </div>
 
-              <div className={styles.videoContainer}>
+              <div className="yt-player-container">
                 {/* プレイヤー本体 */}
-                <div className={styles.videoWrapper} style={{ position: 'relative', width: '100%', paddingTop: '56.25%', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#000' }}>
+                <div className="yt-video-wrapper">
                   <iframe
                     src={embedUrl}
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
                     allow="autoplay; encrypted-media"
                     allowFullScreen
                   ></iframe>
                 </div>
 
                 {/* コントロールパネル */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginTop: '12px',
-                  padding: '0 5px'
-                }}>
-                  <button
-                    type="button"
-                    onClick={handlePrevVideo}
-                    style={{
-                      flex: 1,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '4px',
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '12px',
-                      padding: '10px',
-                      cursor: 'pointer',
-                      color: '#fff',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                  >
-                    <i className="fa-solid fa-chevron-left" style={{ fontSize: '1.2rem' }}></i>
-                    <span style={{ fontSize: '0.6rem', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '1px' }}>Prev</span>
+                <div className="yt-controls">
+                  <button type="button" onClick={handlePrevVideo} className="yt-control-btn">
+                    <i className="fa-solid fa-chevron-left"></i>
+                    <span>Prev</span>
                   </button>
 
-                  <div style={{
-                    flex: 1.5,
-                    textAlign: 'center',
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}>
-                    <span style={{ fontSize: '1.1rem', color: '#fff', fontWeight: '800', fontFamily: 'monospace' }}>
+                  <div className="yt-status-info">
+                    <span className="yt-counter">
                       {String(currentVideoIndex + 1).padStart(2, '0')}
-                      <span style={{ color: '#555', margin: '0 8px', fontWeight: '300' }}>/</span>
+                      <span className="yt-counter-sep">/</span>
                       {String(setlistVideoIds.length).padStart(2, '0')}
                     </span>
-                    <span style={{ fontSize: '0.6rem', color: '#888', marginTop: '2px', fontWeight: 'bold' }}>TRACK NUMBER</span>
+                    <span className="yt-label">TRACK NUMBER</span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={handleNextVideo}
-                    style={{
-                      flex: 1,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '4px',
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '12px',
-                      padding: '10px',
-                      cursor: 'pointer',
-                      color: '#fff',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                  >
-                    <i className="fa-solid fa-chevron-right" style={{ fontSize: '1.2rem' }}></i>
-                    <span style={{ fontSize: '0.6rem', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '1px' }}>Next</span>
+                  <button type="button" onClick={handleNextVideo} className="yt-control-btn">
+                    <i className="fa-solid fa-chevron-right"></i>
+                    <span>Next</span>
                   </button>
                 </div>
               </div>
