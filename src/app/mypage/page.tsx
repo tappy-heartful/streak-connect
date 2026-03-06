@@ -5,15 +5,15 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { db, auth } from "@/src/lib/firebase";
 import { collection, query, where, orderBy, getDocs, doc, getDoc } from "firebase/firestore";
-import { 
-  showSpinner, hideSpinner, showDialog, 
+import {
+  showSpinner, hideSpinner, showDialog,
   deleteTicket, archiveAndDeleteDoc, clearAllAppSession,
-  formatDateToYMDDot 
+  formatDateToYMDDot, globalGetLineLoginUrl
 } from "@/src/lib/functions";
 import Link from "next/link";
 import "./mypage.css";
 
-// 型定義の更新
+// 型定義
 interface TicketGroup {
   groupName: string;
   reservationNo: string;
@@ -28,7 +28,7 @@ interface Ticket {
   representativeName: string;
   companions: string[];
   totalCount?: number;
-  groups?: TicketGroup[]; // 招待用グループ
+  groups?: TicketGroup[];
   liveData?: any;
 }
 
@@ -37,19 +37,53 @@ export default function MyPage() {
   const router = useRouter();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [fetching, setFetching] = useState(true);
+  // ログアウト処理中かどうかを管理するフラグ
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || isLoggingOut) return;
+
+    // 未ログイン時の処理
     if (!user) {
+      handleInitialLogin();
+      return;
+    }
+
+    loadMyTickets();
+  }, [user, loading, isLoggingOut]);
+
+  const handleInitialLogin = async () => {
+    const confirmed = await showDialog("マイページ表示にはログインが必要です。\nLINEログインしますか？");
+    if (!confirmed) {
       router.push("/");
       return;
     }
-    loadMyTickets();
-  }, [user, loading]);
+
+    try {
+      showSpinner();
+      const currentUrl = window.location.href;
+      const fetchUrl = `${globalGetLineLoginUrl}&redirectAfterLogin=${encodeURIComponent(currentUrl)}`;
+
+      const res = await fetch(fetchUrl);
+      const { loginUrl } = await res.json();
+
+      if (loginUrl) {
+        window.location.href = loginUrl;
+      } else {
+        throw new Error("ログインURLの取得に失敗しました");
+      }
+    } catch (e: any) {
+      console.error(e);
+      await showDialog("ログイン処理中にエラーが発生しました。トップページに戻ります。", true);
+      router.push("/");
+    } finally {
+      hideSpinner();
+    }
+  };
 
   const loadMyTickets = async () => {
-    showSpinner();
     if (!user) return;
+    showSpinner();
     setFetching(true);
     try {
       const q = query(
@@ -58,7 +92,7 @@ export default function MyPage() {
         orderBy("updatedAt", "desc")
       );
       const snap = await getDocs(q);
-      
+
       const ticketList: Ticket[] = [];
       for (const d of snap.docs) {
         const data = d.data() as Ticket;
@@ -80,11 +114,21 @@ export default function MyPage() {
 
   const handleLogout = async () => {
     if (!(await showDialog("ログアウトしますか？"))) return;
+
+    // ログアウトフラグを立てて、useEffectの発火を抑制する
+    setIsLoggingOut(true);
     showSpinner();
-    await auth.signOut();
-    clearAllAppSession();
-    hideSpinner();
-    router.push("/");
+
+    try {
+      await auth.signOut();
+      clearAllAppSession();
+      router.push("/");
+    } catch (e) {
+      console.error(e);
+      setIsLoggingOut(false); // エラー時はリセット
+    } finally {
+      hideSpinner();
+    }
   };
 
   const handleWithdrawal = async () => {
@@ -92,6 +136,8 @@ export default function MyPage() {
     if (!(await showDialog(confirmMsg))) return;
     if (!(await showDialog("本当に退会しますか？この操作は取り消せません。"))) return;
 
+    // 退会時もログアウトと同様にフラグを立てる
+    setIsLoggingOut(true);
     showSpinner();
     try {
       for (const t of tickets) {
@@ -104,18 +150,18 @@ export default function MyPage() {
       router.push("/");
     } catch (e: any) {
       alert("エラーが発生しました");
+      setIsLoggingOut(false);
     } finally {
       hideSpinner();
     }
   };
 
-  // URLコピー関数の拡張（グループ個別コピーにも対応）
   const handleCopyUrl = async (ticketId: string, groupIndex?: number) => {
     let url = `${window.location.origin}/ticket-detail/${ticketId}`;
     if (groupIndex !== undefined) {
       url += `?g=${groupIndex + 1}`;
     }
-    
+
     await navigator.clipboard.writeText(url);
     const msg = groupIndex !== undefined
       ? "グループ専用のチケットURLをコピーしました！"
@@ -123,7 +169,8 @@ export default function MyPage() {
     await showDialog(msg, true);
   };
 
-  if (loading || fetching) return <div className="inner">Loading...</div>;
+  if (loading || (user && fetching)) return <div className="inner">Loading...</div>;
+  if (!user || isLoggingOut) return null;
 
   return (
     <main>
@@ -162,10 +209,10 @@ export default function MyPage() {
               <p className="no-data">予約済みのチケットはありません。</p>
             ) : (
               tickets.map((ticket) => (
-                <TicketCard 
-                  key={ticket.id} 
-                  ticket={ticket} 
-                  onRefresh={loadMyTickets} 
+                <TicketCard
+                  key={ticket.id}
+                  ticket={ticket}
+                  onRefresh={loadMyTickets}
                   onCopy={handleCopyUrl}
                 />
               ))
@@ -200,20 +247,19 @@ function TicketCard({ ticket, onRefresh, onCopy }: { ticket: Ticket, onRefresh: 
             {ticket.resType === 'invite' ? 'INVITATION' : `NO. ${ticket.reservationNo || "----"}`}
         </div>
       </div>
-      
+
       <div className="ticket-info">
         <span className="res-type-label">{ticket.resType === 'invite' ? '招待予約' : '一般予約'}</span>
         <div className="t-date">{live.date}</div>
         <Link href={`/live-detail/${ticket.liveId}`} className="t-title-link">
           <h3 className="t-title">{live.title}</h3>
         </Link>
-        
+
         <div className="t-details">
           <p><i className="fa-solid fa-location-dot"></i> 会場: {live.venue}</p>
           <p><i className="fa-solid fa-user-check"></i> {ticket.resType === 'invite' ? '予約担当' : '代表者'}: {ticket.representativeName} 様</p>
-          
+
           {ticket.resType === 'invite' ? (
-            // 招待予約の場合：グループリストを表示
             <div className="mypage-groups-list">
               <p className="groups-label"><i className="fa-solid fa-users"></i> 招待グループ一覧:</p>
               {ticket.groups?.map((g, idx) => (
@@ -228,11 +274,10 @@ function TicketCard({ ticket, onRefresh, onCopy }: { ticket: Ticket, onRefresh: 
               ))}
             </div>
           ) : (
-            // 一般予約の場合
             <p><i className="fa-solid fa-users"></i> 同伴者: {ticket.companions?.filter(c => c !== "").join(" 様、") || "なし"}{ticket.companions?.filter(c => c !== "").length > 0 && " 様"}</p>
           ) }
         </div>
-        
+
         <div className="ticket-actions">
           {ticket.resType !== 'invite' && (
             <button className="btn-view" onClick={() => onCopy(ticket.id)}>URLコピー</button>
