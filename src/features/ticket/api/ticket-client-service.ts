@@ -2,6 +2,7 @@ import { db } from "@/src/lib/firebase";
 import {
   doc,
   getDoc,
+  updateDoc,
   runTransaction,
   serverTimestamp,
   deleteField,
@@ -11,13 +12,73 @@ import { toPlainObject } from "@/src/lib/firestore/utils";
 import { writeLog } from "@/src/lib/functions";
 
 /**
- * チケットの取得
+ * チケットの取得（連番等の不正な予約番号があれば4桁ランダムに自動修復）
  */
 export async function getTicketById(ticketId: string): Promise<TicketData | null> {
   const ticketRef = doc(db, "tickets", ticketId);
   const snap = await getDoc(ticketRef);
   if (!snap.exists()) return null;
-  return toPlainObject<TicketData>({ id: snap.id, ...snap.data() });
+  const data = snap.data();
+
+  let needsUpdate = false;
+  const updates: any = {};
+
+  if (data.resType === "invite") {
+    // 招待予約の場合：グループごとの親番号の一致および4桁ランダム形式チェック
+    let baseNo = data.reservationNo?.split("-")[0];
+    const isInvalidBase =
+      !baseNo ||
+      baseNo.startsWith("000") ||
+      baseNo.length !== 4 ||
+      isNaN(Number(baseNo));
+
+    const groups = data.groups || [];
+    const hasMismatchedGroups = groups.some((g: any) => {
+      const gParent = g.reservationNo?.split("-")[0];
+      return (
+        !g.reservationNo ||
+        gParent !== baseNo ||
+        g.reservationNo.startsWith("000")
+      );
+    });
+
+    if (isInvalidBase || hasMismatchedGroups) {
+      baseNo = Math.floor(1000 + Math.random() * 9000).toString();
+      const fixedGroups = groups.map((g: any, i: number) => ({
+        ...g,
+        reservationNo: `${baseNo}-${i + 1}`,
+      }));
+      data.reservationNo = baseNo;
+      data.groups = fixedGroups;
+      updates.reservationNo = baseNo;
+      updates.groups = fixedGroups;
+      needsUpdate = true;
+    }
+  } else {
+    // 一般予約の場合
+    const resNo = data.reservationNo;
+    const isInvalid =
+      !resNo ||
+      resNo.startsWith("000") ||
+      resNo.length !== 4 ||
+      isNaN(Number(resNo));
+    if (isInvalid) {
+      const newNo = Math.floor(1000 + Math.random() * 9000).toString();
+      data.reservationNo = newNo;
+      updates.reservationNo = newNo;
+      needsUpdate = true;
+    }
+  }
+
+  if (needsUpdate) {
+    try {
+      await updateDoc(ticketRef, updates);
+    } catch (e) {
+      console.warn("予約番号の自動修復に失敗しました:", e);
+    }
+  }
+
+  return toPlainObject<TicketData>({ id: snap.id, ...data });
 }
 
 /**
@@ -96,34 +157,15 @@ export async function saveTicketReservation({
       );
     }
 
-    // 予約番号発番ロジック (一般予約: 4桁 / 招待予約: グループ別発番)
-    let reservationNo = existingTicket?.reservationNo;
-    let finalInviteGroups = [...inviteGroups];
-
-    if (resType === "general") {
-      if (!reservationNo) {
-        const lastNo = liveData.lastReservationNo || 0;
-        const nextNo = lastNo + 1;
-        reservationNo = String(nextNo).padStart(4, "0");
-        t.update(liveRef, { lastReservationNo: nextNo });
-      }
-    } else {
-      let currentLastNo = liveData.lastReservationNo || 0;
-      let hasNewGroup = false;
-
-      finalInviteGroups = inviteGroups.map((g, idx) => {
-        if (!g.reservationNo) {
-          hasNewGroup = true;
-          currentLastNo += 1;
-          const parentNo = String(currentLastNo).padStart(4, "0");
-          return { ...g, reservationNo: `${parentNo}-${idx + 1}` };
-        }
-        return g;
-      });
-
-      if (hasNewGroup) {
-        t.update(liveRef, { lastReservationNo: currentLastNo });
-      }
+    // 予約番号発番ロジック (4桁ランダム数字文字列 / 招待予約は baseNo-枝番)
+    let baseNo = existingTicket?.reservationNo?.split("-")[0];
+    if (
+      !baseNo ||
+      baseNo.startsWith("000") ||
+      baseNo.length !== 4 ||
+      isNaN(Number(baseNo))
+    ) {
+      baseNo = Math.floor(1000 + Math.random() * 9000).toString();
     }
 
     // 在庫更新
@@ -133,29 +175,47 @@ export async function saveTicketReservation({
     const validGeneralCompanions = generalCompanions.filter(
       (c) => c.trim() !== ""
     );
-    const validInviteGroups = finalInviteGroups.map((g) => ({
-      ...g,
-      companions: g.companions.filter((c) => c.trim() !== ""),
-    }));
+    const validInviteGroups = inviteGroups
+      .filter(
+        (g) =>
+          g.groupName.trim() !== "" ||
+          g.companions.some((c) => c.trim() !== "")
+      )
+      .map((g, idx) => ({
+        groupName: g.groupName.trim() || "名称未設定グループ",
+        companions: g.companions.filter((c) => c.trim() !== ""),
+        reservationNo: `${baseNo}-${idx + 1}`,
+      }));
 
     const ticketData: any = {
       liveId,
       uid,
       resType,
-      representativeName,
       totalCount: newTotalCount,
+      reservationNo: baseNo,
+      isLineNotified: existingTicket?.isLineNotified ?? false,
+      isReminderSent: existingTicket?.isReminderSent ?? false,
       updatedAt: serverTimestamp(),
-      createdAt: existingTicket ? existingTicket.createdAt : serverTimestamp(),
     };
 
-    if (resType === "invite") {
-      ticketData.groups = validInviteGroups;
-      ticketData.reservationNo = deleteField();
-      ticketData.companions = deleteField();
-    } else {
-      ticketData.reservationNo = reservationNo;
+    if (resType === "general") {
+      ticketData.representativeName = representativeName;
       ticketData.companions = validGeneralCompanions;
-      ticketData.groups = deleteField();
+      ticketData.companionCount = validGeneralCompanions.length;
+      if (existingTicket) {
+        ticketData.groups = deleteField();
+      }
+    } else {
+      ticketData.representativeName = representativeName || "メンバー";
+      ticketData.groups = validInviteGroups;
+      if (existingTicket) {
+        ticketData.companions = deleteField();
+        ticketData.companionCount = deleteField();
+      }
+    }
+
+    if (!existingTicket) {
+      ticketData.createdAt = serverTimestamp();
     }
 
     t.set(ticketRef, ticketData, { merge: true });

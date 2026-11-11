@@ -10,6 +10,7 @@ import {
   deleteTicket,
   formatDateToYMDDot,
   globalGetLineLoginUrl,
+  formatPrice,
 } from "@/src/lib/functions";
 import Link from "next/link";
 import YoutubeSetlistPlayer from "@/src/components/YoutubeSetlistPlayer";
@@ -181,8 +182,8 @@ export default function LiveDetailClient({ id }: LiveDetailClientProps) {
                 <i className="fa-solid fa-ticket"></i>
                 <span className={styles.label}>TICKET</span>
                 <span className={styles.val}>
-                  前売: ¥{live.advance?.toLocaleString() || "0"} / 当日: ¥
-                  {live.door?.toLocaleString() || "0"}
+                  前売: {formatPrice(live.advance || live.feeAdvance)} / 当日:{" "}
+                  {formatPrice(live.door || live.feeDoor)}
                 </span>
               </div>
             </div>

@@ -115,11 +115,11 @@ LINEログインを活用したパスワードレスでストレスのない認�
   - 残席を超える人数が指定された場合はエラーメッセージを表示し、予約処理を中断。
 - **一般予約モード (`resType === "general"`)**:
   - 代表者氏名（必須）および同伴者氏名（複数人追加可能）。
-  - 通番形式の4桁予約番号（`0001`〜）を自動発番。
+  - 4桁のランダム数字文字列（`1000`〜`9999`）による予約番号を自動発番。
 - **招待予約モード (`resType === "invite"`)**:
   - 楽団メンバー（Firestore `users/{uid}` 存在者）のみ選択可能な特別モード。
   - 複数の招待グループ（例:「家族」「大学ジャズ研」）を1回の操作でまとめて管理。
-  - グループごとに予約番号（`0005-1`, `0005-2`）を枝番発番。
+  - 4桁親番号をベースにグループごとに予約番号（`5821-1`, `5821-2`...）を枝番発番。
 - **リアルタイムサマリー**:
   - 単価、合計枚数、合計金額（当日精算額）をフォーム下部にリアルタイム計算表示。
 
@@ -206,7 +206,6 @@ interface Live {
   maxCompanions?: number;    // 同伴者最大人数
   caution?: string;          // 注意事項 (改行含む)
   note?: string;             // 備考 (改行含む)
-  lastReservationNo?: number;// 最終発番予約番号
   setlist?: {
     setName?: string;
     songIds?: string[];
@@ -221,13 +220,13 @@ interface Ticket {
   liveId: string;            // 公演ID
   uid: string;               // 予約者UID
   resType: "general" | "invite"; // 一般予約 / 招待予約
-  reservationNo?: string;    // 予約番号 (一般: "0001", 招待時は未設定)
+  reservationNo?: string;    // 予約番号 (4桁ランダム数字文字列、例: "5821")
   representativeName: string;// 代表者氏名
   companions?: string[];     // 一般予約の同伴者一覧
   totalCount: number;        // 合計人数
   groups?: {                 // 招待予約のグループ一覧
     groupName: string;
-    reservationNo: string;   // グループ予約番号 ("0005-1")
+    reservationNo: string;   // グループ予約番号 ("5821-1")
     companions: string[];    // 来場者一覧
   }[];
   createdAt: Timestamp;

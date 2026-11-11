@@ -9,6 +9,7 @@ import {
   showDialog,
   deleteTicket,
   formatDateToYMDDot,
+  formatPrice,
 } from "@/src/lib/functions";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
@@ -112,8 +113,8 @@ export default function TicketDetailClient({ id }: TicketDetailClientProps) {
           {live.start || "--:--"}
         </p>
         <p>
-          <i className="fa-solid fa-money-bill"></i> チケット代金: ¥
-          {live.advance?.toLocaleString() || "0"} / 1名
+          <i className="fa-solid fa-money-bill"></i> チケット代金:{" "}
+          {formatPrice(live.advance || live.feeAdvance)} / 1名
         </p>
       </div>
     </div>
@@ -156,19 +157,17 @@ export default function TicketDetailClient({ id }: TicketDetailClientProps) {
           {ticket.resType !== "invite" && (
             <div className={styles.ticketCardDetailMode}>
               <div className={styles.resNoWrapper}>
-                <span className={styles.resNoLabel}>RESERVATION NUMBER</span>
+                <span className={styles.resNoLabel}>RESERVATION NO.</span>
                 <span className={styles.resNoValue}>
-                  NO. {ticket.reservationNo || "----"}
+                  {ticket.reservationNo || "----"}
                 </span>
                 <button
                   type="button"
                   className={styles.btnCopyNo}
-                  onClick={() =>
-                    copyToClipboard(ticket.reservationNo || "", false)
-                  }
-                  title="予約番号をコピー"
+                  onClick={handleCopyUrl}
+                  title="チケットURLをコピー"
                 >
-                  <i className="fa-solid fa-copy"></i>
+                  <i className="fa-solid fa-link"></i>
                   <span>COPY</span>
                 </button>
               </div>
@@ -260,19 +259,20 @@ export default function TicketDetailClient({ id }: TicketDetailClientProps) {
                     </div>
 
                     <div className={styles.resNoWrapper}>
-                      <span className={styles.resNoLabel}>GROUP NO.</span>
+                      <span className={styles.resNoLabel}>RESERVATION NO.</span>
                       <span className={styles.resNoValue}>
-                        {group.reservationNo || "----"}
+                        {group.reservationNo ||
+                          (ticket.reservationNo
+                            ? `${ticket.reservationNo}-${groupIdx}`
+                            : "----")}
                       </span>
                       <button
                         type="button"
                         className={styles.btnCopyNo}
-                        onClick={() =>
-                          copyToClipboard(group.reservationNo || "", false)
-                        }
-                        title="グループ番号をコピー"
+                        onClick={() => copyToClipboard(groupUrl, true)}
+                        title="グループ専用招待URLをコピー"
                       >
-                        <i className="fa-solid fa-copy"></i>
+                        <i className="fa-solid fa-link"></i>
                         <span>COPY</span>
                       </button>
                     </div>

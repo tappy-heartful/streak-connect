@@ -136,6 +136,34 @@ export function formatDateToYMDDot(dateInput: any): string {
   return `${y}.${m}.${d}`;
 }
 
+// --- 金額フォーマット・計算用数値取得 ---
+export function formatPrice(val: number | string | undefined | null): string {
+  if (val === undefined || val === null || val === '') return '--';
+  if (typeof val === 'number') {
+    return `¥${val.toLocaleString()}`;
+  }
+  const str = String(val).trim();
+  if (str.startsWith('¥') || str.startsWith('￥')) {
+    return str;
+  }
+  return `¥${str}`;
+}
+
+export function getFeeAdvance(live: any): number {
+  if (!live) return 0;
+  if (live.feeAdvance !== undefined && live.feeAdvance !== null && !isNaN(Number(live.feeAdvance))) {
+    return Number(live.feeAdvance);
+  }
+  if (typeof live.advance === 'number') {
+    return live.advance;
+  }
+  if (typeof live.advance === 'string') {
+    const num = parseInt(live.advance.replace(/[^0-9]/g, ''), 10);
+    return isNaN(num) ? 0 : num;
+  }
+  return 0;
+}
+
 // --- ログ記録 ---
 export async function writeLog({ dataId, action, status = 'success', errorDetail = {} }: any) {
   try {

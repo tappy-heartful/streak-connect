@@ -8,6 +8,8 @@ import {
   hideSpinner,
   showDialog,
   writeLog,
+  formatPrice,
+  getFeeAdvance,
 } from "@/src/lib/functions";
 import Link from "next/link";
 import styles from "./ticket-reserve.module.css";
@@ -102,20 +104,26 @@ export default function TicketReserveClient({ id }: TicketReserveClientProps) {
         });
         setGeneralCompanions(restoredGeneral);
 
-        // 招待予約データの復元
+        // 招待予約データの復元と補完
         if (tData.groups && tData.groups.length > 0) {
-          setInviteGroups(
-            tData.groups.map((g) => ({
-              ...g,
-              companions:
-                g.companions.length > 0
-                  ? g.companions
-                  : [...emptyCompanions],
-            }))
-          );
+          const restoredGroups = tData.groups.map((g) => {
+            const paddedCompanions = [...emptyCompanions];
+            (g.companions || []).forEach((name: string, i: number) => {
+              if (i < maxComp) paddedCompanions[i] = name;
+            });
+            return { ...g, companions: paddedCompanions };
+          });
+          setInviteGroups(restoredGroups);
         } else {
+          // 旧データや一般データからの切り替え用に初期化
           setInviteGroups([
-            { groupName: "", companions: [...emptyCompanions] },
+            {
+              groupName: tData.resType === "invite" ? "ご招待客" : "",
+              companions: [...restoredGeneral],
+              reservationNo: tData.reservationNo
+                ? `${tData.reservationNo}-1`
+                : undefined,
+            },
           ]);
         }
       } else {
@@ -201,7 +209,7 @@ export default function TicketReserveClient({ id }: TicketReserveClientProps) {
     setInviteGroups(updated);
   };
 
-  // 予約枚数計算
+  // 予約枚数・金額計算
   const getTotals = () => {
     let count = 0;
     if (resType === "invite") {
@@ -216,8 +224,8 @@ export default function TicketReserveClient({ id }: TicketReserveClientProps) {
       ).length;
       count = representativeName.trim() !== "" ? 1 + companionsCount : 0;
     }
-    const price = live?.advance || 0;
-    return { count, totalPrice: count * price };
+    const unitPrice = getFeeAdvance(live);
+    return { count, unitPrice, totalPrice: count * unitPrice };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -335,8 +343,8 @@ export default function TicketReserveClient({ id }: TicketReserveClientProps) {
                 {live.start || "--:--"}
               </p>
               <p>
-                <i className="fa-solid fa-money-bill"></i> 前売チケット代金: ¥
-                {live.advance?.toLocaleString() || "0"} / 1名
+                <i className="fa-solid fa-money-bill"></i> 前売チケット代金:{" "}
+                {formatPrice(live.advance || live.feeAdvance)} / 1名
               </p>
             </div>
           </div>
@@ -528,7 +536,7 @@ export default function TicketReserveClient({ id }: TicketReserveClientProps) {
               <div className={styles.summaryCard}>
                 <div className={styles.summaryRow}>
                   <span>単価 (前売):</span>
-                  <span>¥{live.advance?.toLocaleString() || "0"}</span>
+                  <span>{formatPrice(live.advance || live.feeAdvance)}</span>
                 </div>
                 <div className={styles.summaryRow}>
                   <span>合計予約枚数:</span>

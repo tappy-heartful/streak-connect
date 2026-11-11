@@ -20,8 +20,10 @@ export interface Live {
   venue: string;
   open?: string;
   start?: string;
-  advance?: number;
-  door?: number;
+  advance?: number | string;
+  door?: number | string;
+  feeAdvance?: number;
+  feeDoor?: number;
   flyerUrl?: string;
   ticketStock?: number;
   totalReserved?: number;
