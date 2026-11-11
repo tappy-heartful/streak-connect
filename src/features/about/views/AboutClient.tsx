@@ -11,10 +11,7 @@ export default function AboutClient() {
 
   return (
     <main className={styles.aboutPage}>
-      <h1 className="page-title" style={{ fontSize: "2rem", marginBottom: "30px" }}>
-        <i className="fa-solid fa-circle-info" style={{ marginRight: "10px", color: "#e7211a" }}></i>
-        サイト情報 | Streak Connect
-      </h1>
+      <h1 className="page-title">サイト情報 | Streak Connect</h1>
 
       <div className={styles.tabs}>
         <div

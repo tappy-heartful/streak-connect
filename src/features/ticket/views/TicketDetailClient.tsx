@@ -131,10 +131,7 @@ export default function TicketDetailClient({ id }: TicketDetailClientProps) {
         }
       >
         <div className="hero-content">
-          <h1 className="page-title">
-            <i className="fa-solid fa-qrcode" style={{ marginRight: "12px", color: "#e7211a" }}></i>
-            TICKET
-          </h1>
+          <h1 className="page-title">TICKET</h1>
           <p className="tagline">Digital Admission Ticket</p>
         </div>
       </section>

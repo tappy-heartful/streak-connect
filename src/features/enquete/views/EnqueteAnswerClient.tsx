@@ -157,10 +157,7 @@ export default function EnqueteAnswerClient({ id }: EnqueteAnswerClientProps) {
         }
       >
         <div className="hero-content">
-          <h1 className="page-title">
-            <i className="fa-solid fa-clipboard-question" style={{ marginRight: "12px", color: "#e7211a" }}></i>
-            QUESTIONNAIRE
-          </h1>
+          <h1 className="page-title">QUESTIONNAIRE</h1>
           <p className="tagline">Audience Survey</p>
         </div>
       </section>

@@ -125,10 +125,7 @@ export default function LiveDetailClient({ id }: LiveDetailClientProps) {
         }
       >
         <div className="hero-content">
-          <h1 className="page-title">
-            <i className="fa-solid fa-compact-disc" style={{ marginRight: "12px", color: "#e7211a" }}></i>
-            LIVE INFO
-          </h1>
+          <h1 className="page-title">LIVE INFO</h1>
           <p className="tagline">Event Details & Tickets</p>
         </div>
       </section>

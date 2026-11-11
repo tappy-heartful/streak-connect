@@ -167,10 +167,7 @@ export default function MyPageClient() {
         }
       >
         <div className="hero-content">
-          <h1 className="page-title">
-            <i className="fa-solid fa-user-gear" style={{ marginRight: "12px", color: "#e7211a" }}></i>
-            MY PAGE
-          </h1>
+          <h1 className="page-title">MY PAGE</h1>
           <p className="tagline">User Profile & Tickets</p>
         </div>
       </section>

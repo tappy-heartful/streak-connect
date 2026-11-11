@@ -306,10 +306,7 @@ export default function TicketReserveClient({ id }: TicketReserveClientProps) {
         }
       >
         <div className="hero-content">
-          <h1 className="page-title">
-            <i className="fa-solid fa-ticket" style={{ marginRight: "12px", color: "#e7211a" }}></i>
-            RESERVATION
-          </h1>
+          <h1 className="page-title">RESERVATION</h1>
           <p className="tagline">Ticket Reserve Form</p>
         </div>
       </section>

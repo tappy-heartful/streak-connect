@@ -1,0 +1,97 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ======================================================
+    // 共通判定関数
+    // ======================================================
+
+    // ログインしているか
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // ドキュメントIDが本人のUIDか
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ドキュメントIDが「liveId_uid」形式の場合、本人のデータか
+    function isIdWithUid(id) {
+      return isSignedIn() && id.split('_')[1] == request.auth.uid;
+    }
+
+    // ======================================================
+    // 1. 公開データ (ファン・来場者向け)
+    // ======================================================
+
+    // ライブ公演情報
+    match /lives/{id} {
+      allow read: if true;
+      // 予約トランザクション時の totalReserved, lastReservationNo のみログインユーザーの更新を許可
+      allow update: if isSignedIn() && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['totalReserved', 'lastReservationNo']);
+    }
+
+    // 公式メディア情報
+    match /medias/{id} {
+      allow read: if true;
+    }
+
+    // 楽曲マスタ (セットリストYouTube音源参照用)
+    match /scores/{id} {
+      allow read: if true;
+    }
+
+    // システム設定・アンケート設問
+    match /configs/{id} {
+      allow read: if true;
+    }
+
+    // 来場者アンケート回答 (未ログイン回答も許容)
+    match /enqueteAnswers/{id} {
+      allow read, write: if true;
+    }
+
+    // デジタルチケット (URL共有・招待客表示のためreadは全公開)
+    match /tickets/{id} {
+      allow read: if true;
+      allow write: if isIdWithUid(id);
+    }
+
+    // ======================================================
+    // 2. ユーザー情報・セッション
+    // ======================================================
+
+    // 一般顧客・ファンユーザー
+    match /connectUsers/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(uid);
+    }
+
+    // 楽団メンバー参照 (招待予約権限チェック用)
+    match /users/{uid} {
+      allow read: if isSignedIn();
+    }
+
+    // ======================================================
+    // 3. ログ・アーカイブ
+    // ======================================================
+
+    match /connectLogs/{id} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if false;
+    }
+
+    match /connectErrorLogs/{id} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if false;
+    }
+
+    match /archives/{id} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if false;
+    }
+  }
+}
+

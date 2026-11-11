@@ -63,10 +63,7 @@ export default function AgreementClient() {
     <main className={styles.agreementPage}>
       <section className={styles.heroMini}>
         <div className="hero-content">
-          <h1 className="page-title">
-            <i className="fa-solid fa-file-contract" style={{ marginRight: "12px", color: "#e7211a" }}></i>
-            TERMS OF SERVICE
-          </h1>
+          <h1 className="page-title">TERMS OF SERVICE</h1>
           <p className="tagline">利用規約および個人情報の取り扱い</p>
         </div>
       </section>
