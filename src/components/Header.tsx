@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { globalGetLineLoginUrl, showSpinner, hideSpinner } from "@/src/lib/functions";
+import { globalGetLineLoginUrl, showSpinner, hideSpinner, showDialog } from "@/src/lib/functions";
 
 export default function Header() {
   const pathname = usePathname();
@@ -35,7 +35,7 @@ export default function Header() {
         }
       } catch (e: any) {
         console.error(e);
-        alert("ログイン処理中にエラーが発生しました。");
+        await showDialog("ログイン処理中にエラーが発生しました。", true);
         hideSpinner();
       }
     }

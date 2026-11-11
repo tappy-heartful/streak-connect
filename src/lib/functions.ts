@@ -262,31 +262,12 @@ export async function deleteTicket(
   }
 }
 
+import { openImagePreview } from "@/src/components/ImagePreviewModal";
+
 /**
- * 画像プレビュー表示 (jQueryを使わず実装)
+ * 画像プレビュー表示
  * @param url 表示したい画像のURL
  */
 export function showImagePreview(url: string) {
-  if (typeof document === 'undefined') return;
-
-  // すでに開いている場合は一旦削除（重複防止）
-  const existing = document.getElementById('image-preview-overlay');
-  if (existing) existing.remove();
-
-  // オーバーレイの作成
-  const overlay = document.createElement('div');
-  overlay.id = 'image-preview-overlay';
-  
-  // スタイルはCSSファイル（globals.css等）に書くのが理想ですが、
-  // ここで直接指定することも可能です。
-  overlay.innerHTML = `
-    <div class="image-preview-content">
-      <img src="${url}" alt="Preview">
-    </div>
-  `;
-
-  // クリックで削除
-  overlay.onclick = () => overlay.remove();
-
-  document.body.appendChild(overlay);
+  openImagePreview(url);
 }

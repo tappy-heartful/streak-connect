@@ -1,4 +1,4 @@
-.about-page {
+.aboutPage {
   max-width: 800px;
   margin: 0 auto;
   padding: 40px 15px;
@@ -6,14 +6,14 @@
   line-height: 1.8;
 }
 
-.about-page h1 {
+.aboutPage h1 {
   text-align: center;
   font-size: 1.5rem;
   margin-bottom: 2rem;
   color: #fff;
 }
 
-.about-page h2 {
+.aboutPage h2 {
   color: #fff;
   border-left: 4px solid #e7211a;
   padding-left: 10px;
@@ -48,11 +48,11 @@
   border-bottom: 2px solid #e7211a;
 }
 
-.tab-container {
+.tabContainer {
   min-height: 300px;
 }
 
-.tab-content {
+.tabContent {
   display: none;
   background: #111;
   padding: 1.5rem;
@@ -61,16 +61,16 @@
   word-break: break-all;
 }
 
-.tab-content.active {
+.tabContent.active {
   display: block;
 }
 
-.tab-content ul {
+.tabContent ul {
   padding-left: 20px;
   margin: 1rem 0;
 }
 
-.tab-content li {
+.tabContent li {
   margin-bottom: 0.8rem;
 }
 
@@ -80,13 +80,13 @@
   margin-top: 1rem;
 }
 
-.page-footer {
+.pageFooter {
   text-align: center;
   margin-top: 4rem;
   margin-bottom: 2rem;
 }
 
-.back-link {
+.backLink {
   display: inline-block;
   color: #fff;
   text-decoration: none;
@@ -98,18 +98,9 @@
   transition: all 0.3s ease;
 }
 
-.back-link:hover {
-  background-color: #e7211a;
-  transform: scale(1.05);
+.backLink:hover {
+  background: #e7211a;
+  color: #fff;
+  box-shadow: 0 0 15px rgba(231, 33, 26, 0.4);
 }
 
-@media screen and (max-width: 600px) {
-  .tab {
-    flex: 1 1 48%;
-    font-size: 0.8rem;
-  }
-  .back-link {
-    width: 90%;
-    padding: 12px 10px;
-  }
-}

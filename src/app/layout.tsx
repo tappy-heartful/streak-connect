@@ -1,18 +1,45 @@
 import type { Metadata } from "next";
-import { AuthProvider } from "@/src/contexts/AuthContext";
+import ClientLayout from "./ClientLayout";
 import "./globals.css";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import Script from "next/script";
-import CommonDialog from "@/src/components/CommonDialog";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "SSJO",
+  title: {
+    template: "%s | SSJO Connect",
+    default: "SSJO Connect | Swing Streak Jazz Orchestra",
+  },
   description: "Swing Streak Jazz Orchestra Official Store & Reserve",
   icons: {
     icon: "https://tappy-heartful.github.io/streak-images/connect/favicon.png",
     apple: "https://tappy-heartful.github.io/streak-images/connect/favicon.png",
   },
+  openGraph: {
+    title: {
+      template: "%s | SSJO Connect",
+      default: "SSJO Connect | Swing Streak Jazz Orchestra",
+    },
+    description: "Swing Streak Jazz Orchestra Official Store & Reserve",
+    siteName: "SSJO Connect",
+    locale: "ja_JP",
+    type: "website",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "SSJO Connect",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport = {
+  themeColor: "#000000",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -29,18 +56,7 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <AuthProvider>
-        <Header />
-        {children}
-        <Footer />
-        
-        {/* Instagramの埋め込み用スクリプト */}
-        <Script 
-          src="https://www.instagram.com/embed.js" 
-          strategy="afterInteractive" 
-        />
-        <CommonDialog />
-        </AuthProvider>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );

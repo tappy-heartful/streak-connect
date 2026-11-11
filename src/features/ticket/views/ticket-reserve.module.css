@@ -1,0 +1,259 @@
+.ticketCardDetailMode {
+  background: #1a1a1a;
+  padding: 20px;
+  border-left: 5px solid #e7211a;
+  margin-bottom: 30px;
+}
+
+.tDate {
+  color: #e7211a;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.tTitle {
+  font-size: 1.5rem;
+  margin: 10px 0;
+  color: #fff;
+}
+
+.tDetails p {
+  margin: 8px 0;
+  font-size: 0.95rem;
+  color: #ccc;
+}
+
+.formWrapper {
+  margin-top: 20px;
+  background: #111;
+  padding: 30px;
+  border: 1px solid #222;
+}
+
+.sectionTitle {
+  font-family: 'Impact', sans-serif;
+  font-size: 1.8rem;
+  margin-bottom: 30px;
+  color: #fff;
+}
+
+.subTitle {
+  margin: 35px 0 15px;
+  color: #fff;
+  font-size: 1.3rem;
+  border-left: 5px solid #e7211a;
+  padding-left: 12px;
+  font-family: 'Impact', sans-serif;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formGroup label {
+  display: block;
+  color: #ccc;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.formNote {
+  font-size: 0.85rem;
+  color: #888;
+  margin: -5px 0 10px 0;
+  line-height: 1.4;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.formGroup input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  background: #222;
+  border: 1px solid #333;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.formGroup input:focus {
+  border-color: #e7211a;
+  outline: none;
+}
+
+.readOnlyInput {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: #e7211a !important;
+  font-weight: bold;
+}
+
+.btnDelRow {
+  background: #333;
+  border: 1px solid #444;
+  color: #aaa;
+  border-radius: 4px;
+  padding: 0 12px;
+  height: 46px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btnDelRow:hover {
+  background: #e7211a;
+  color: #fff;
+  border-color: #e7211a;
+}
+
+.btnAddRow {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 1px dashed #444;
+  color: #aaa;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 5px;
+  transition: all 0.2s;
+}
+
+.btnAddRow:hover {
+  border-color: #e7211a;
+  color: #e7211a;
+  background: rgba(231, 33, 26, 0.05);
+}
+
+.groupCard {
+  background: #181818;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.groupCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.groupTitle {
+  font-size: 1.1rem;
+  color: #e7211a;
+  font-weight: bold;
+}
+
+.btnDelGroup {
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.btnDelGroup:hover {
+  color: #e7211a;
+}
+
+.typeSelector {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  background: #181818;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.typeBtn {
+  flex: 1;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #888;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.typeBtn.active {
+  background: #e7211a;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(231, 33, 26, 0.3);
+}
+
+.typeBtn:not(.active):hover {
+  color: #fff;
+  border-color: #333;
+}
+
+.summaryCard {
+  background: #1a1a1a;
+  padding: 20px;
+  border-radius: 4px;
+  margin-top: 30px;
+  border: 1px solid #333;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: #ccc;
+  font-size: 1rem;
+}
+
+.summaryRow.total {
+  border-top: 1px solid #333;
+  padding-top: 10px;
+  margin-top: 10px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.summaryRow.total span:last-child {
+  color: #e7211a;
+  font-size: 1.4rem;
+}
+
+.btnSubmit {
+  width: 100%;
+  padding: 16px;
+  background: #e7211a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 30px;
+  transition: all 0.3s;
+  letter-spacing: 0.05em;
+}
+
+.btnSubmit:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(231, 33, 26, 0.4);
+}
+

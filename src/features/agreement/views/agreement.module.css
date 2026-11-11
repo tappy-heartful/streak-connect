@@ -1,12 +1,11 @@
-.agreement-page {
+.agreementPage {
   background: #000;
   min-height: 100vh;
   color: #fff;
   padding-bottom: 80px;
 }
 
-/* ヒーローエリア（短縮版） */
-.hero-mini {
+.heroMini {
   background:
     linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
     url('https://tappy-heartful.github.io/streak-images/connect/background/mypage.jpg');
@@ -18,7 +17,7 @@
   margin-bottom: 40px;
 }
 
-.agreement-wrapper {
+.agreementWrapper {
   max-width: 800px;
   margin: 0 auto;
   background: #111;
@@ -27,7 +26,7 @@
   border-radius: 8px;
 }
 
-.agreement-header h3 {
+.agreementHeader h3 {
   font-size: 1.5rem;
   color: #fff;
   margin-bottom: 10px;
@@ -35,14 +34,13 @@
   padding-left: 15px;
 }
 
-.agreement-header p {
+.agreementHeader p {
   color: #888;
   font-size: 0.9rem;
   margin-bottom: 30px;
 }
 
-/* 規約文章のスクロールボックス */
-.agreement-box {
+.agreementBox {
   background: #0a0a0a;
   border: 1px solid #333;
   padding: 25px;
@@ -52,27 +50,38 @@
   border-radius: 4px;
 }
 
-.agreement-content h4 {
+.agreementContent h4 {
   color: #e7211a;
   margin: 25px 0 10px;
   font-size: 1rem;
 }
 
-.agreement-content p {
+.agreementContent p {
   font-size: 0.9rem;
   line-height: 1.8;
   color: #ccc;
   margin-bottom: 15px;
 }
 
-.agreement-footer {
+.agreementContent ul {
+  padding-left: 20px;
+  margin: 10px 0;
+  color: #ccc;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.agreementContent li {
+  margin-bottom: 8px;
+}
+
+.agreementFooter {
   margin-top: 40px;
   text-align: right;
   font-weight: bold;
 }
 
-/* カスタムチェックボックス */
-.checkbox-container {
+.checkboxContainer {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,64 +93,39 @@
   user-select: none;
 }
 
-.checkbox-container input {
+.checkboxContainer input {
   width: 20px;
   height: 20px;
   accent-color: #e7211a;
 }
 
-/* 同意ボタン */
-.btn-agree {
+.btnAgree {
   display: block;
   width: 100%;
   max-width: 350px;
   margin: 0 auto;
   padding: 16px;
   background: #333;
-  color: #888;
+  color: #666;
   border: none;
-  border-radius: 50px;
-  font-weight: bold;
+  border-radius: 4px;
   font-size: 1.1rem;
+  font-weight: bold;
   cursor: not-allowed;
-  transition: 0.3s;
+  transition: all 0.3s ease;
+  font-family: 'Impact', sans-serif;
+  letter-spacing: 0.1em;
 }
 
-.btn-agree.active {
+.btnAgree.active {
   background: #e7211a;
   color: #fff;
   cursor: pointer;
-  box-shadow: 0 0 20px rgba(231, 33, 26, 0.4);
+  box-shadow: 0 0 15px rgba(231, 33, 26, 0.4);
 }
 
-.btn-agree.active:hover {
-  background: #ff2a22;
+.btnAgree.active:hover {
+  opacity: 0.9;
   transform: translateY(-2px);
 }
 
-.cancel-link {
-  text-align: center;
-  margin-top: 25px;
-}
-
-.cancel-link a {
-  color: #666;
-  font-size: 0.85rem;
-  text-decoration: none;
-}
-
-.cancel-link a:hover {
-  color: #fff;
-}
-
-/* スクロールバーのカスタマイズ（ブラウザ対応） */
-.agreement-box::-webkit-scrollbar {
-  width: 6px;
-}
-.agreement-box::-webkit-scrollbar-track {
-  background: #111;
-}
-.agreement-box::-webkit-scrollbar-thumb {
-  background: #e7211a;
-  border-radius: 10px;
-}
