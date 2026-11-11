@@ -4,15 +4,17 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { globalLineLoginUrl } from "@/src/lib/functions";
 
 export async function processLineCallback(code: string, state: string, redirectUri: string) {
-  // 1. 自前認証サーバーでLINEトークン検証 & Firebaseカスタムトークン取得
-  const res = await fetch(`${globalLineLoginUrl}`, {
+  // 1. 自前 Next.js API Routes でLINEトークン検証 & Firebaseカスタムトークン取得
+  const res = await fetch(globalLineLoginUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code, state, redirectUri }),
   });
   const data = await res.json();
 
-  if (data.error) throw new Error(data.error);
+  if (!res.ok || data.error) {
+    throw new Error(data.error || "認証処理に失敗しました。");
+  }
 
   // 2. Firebaseカスタムトークンでサインイン
   const { user } = await signInWithCustomToken(auth, data.customToken);

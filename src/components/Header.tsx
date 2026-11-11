@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { globalGetLineLoginUrl, showSpinner, hideSpinner, showDialog } from "@/src/lib/functions";
+import { redirectToLineLogin } from "@/src/lib/functions";
 
 export default function Header() {
   const pathname = usePathname();
@@ -18,26 +18,7 @@ export default function Header() {
     // 未ログイン時のみログイン処理を実行
     if (!user) {
       e.preventDefault(); // 通常のLink遷移をキャンセル
-      
-      try {
-        showSpinner();
-        // 現在のページをリダイレクト先に指定（ログイン後にここに戻るため）
-        const currentUrl = window.location.href;
-        const fetchUrl = `${globalGetLineLoginUrl}&redirectAfterLogin=${encodeURIComponent(currentUrl)}`;
-
-        const res = await fetch(fetchUrl);
-        const { loginUrl } = await res.json();
-
-        if (loginUrl) {
-          window.location.href = loginUrl;
-        } else {
-          throw new Error("ログインURLの取得に失敗しました");
-        }
-      } catch (e: any) {
-        console.error(e);
-        await showDialog("ログイン処理中にエラーが発生しました。", true);
-        hideSpinner();
-      }
+      await redirectToLineLogin(window.location.href);
     }
     // ログイン済みの場合は、Linkタグの本来の挙動で /mypage へ遷移する
   };

@@ -74,6 +74,20 @@ service cloud.firestore {
       allow read: if isSignedIn();
     }
 
+    // サーバーAdmin管理（クライアントSDK直接書き込み禁止）
+    match /oauthStates/{id} {
+      allow read, write: if false;
+    }
+
+    match /lineMessagingIds/{id} {
+      allow read, write: if false;
+    }
+
+    match /pwaAuthSessions/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // ======================================================
     // 3. ログ・アーカイブ
     // ======================================================

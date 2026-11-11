@@ -24,10 +24,35 @@ import { showDialog } from "@/src/components/CommonDialog"; // 先ほど作っ�
 export const isTest = typeof window !== 'undefined' && window.location.hostname.includes('test');
 export const isLocal = typeof window !== 'undefined' && window.location.hostname.includes('localhost');
 export const globalAppName = isLocal ? 'streakConnectLocal' : isTest ? 'streakConnectTest' : 'streakConnect';
-export const globalClientId = '2007808275';
-export const globalAuthServerRender = 'https://streak-navi-auth-server-kz3v.onrender.com';
-export const globalGetLineLoginUrl = globalAuthServerRender + '/get-line-login-url?appType=next-connect';
-export const globalLineLoginUrl = globalAuthServerRender + '/line-login?appType=next-connect';
+export const globalClientId = '2009077071';
+// 自前 Next.js API Routes による認証
+export const globalGetLineLoginUrl = '/api/line/get-url';
+export const globalLineLoginUrl = '/api/line/login';
+
+/**
+ * LINEログイン画面へ遷移する共通関数
+ */
+export async function redirectToLineLogin(redirectAfterLogin?: string) {
+  try {
+    showSpinner();
+    const currentUrl = redirectAfterLogin || (typeof window !== 'undefined' ? window.location.href : '');
+    const fetchUrl = currentUrl
+      ? `${globalGetLineLoginUrl}?redirectAfterLogin=${encodeURIComponent(currentUrl)}`
+      : globalGetLineLoginUrl;
+
+    const res = await fetch(fetchUrl);
+    const data = await res.json();
+    if (data.loginUrl) {
+      window.location.href = data.loginUrl;
+    } else {
+      throw new Error(data.error || 'ログインURLの取得に失敗しました');
+    }
+  } catch (e: any) {
+    console.error('LINEログイン遷移エラー:', e);
+    await showDialog('ログイン処理中にエラーが発生しました。', true);
+    hideSpinner();
+  }
+}
 
 
 // すでに CommonDialog.tsx で export していますが、

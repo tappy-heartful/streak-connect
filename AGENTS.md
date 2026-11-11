@@ -112,24 +112,21 @@ src/
 graph TD
     User([ファン / 来場者 / メンバー])
     LINE[LINE 公式アカウント / LINE Login API]
-    AuthServer[LINE認証中間サーバー]
-    ConnectApp[Streak Connect Next.js 16]
+    ConnectApp[Streak Connect Next.js 16 API Routes]
     FAuth[Firebase Authentication]
     FS[(Cloud Firestore)]
     IG[Instagram Embed API]
     YT[YouTube IFrame Player API]
 
     User -->|1. LINEでログイン| ConnectApp
-    ConnectApp -->|2. ログインURL取得| AuthServer
-    AuthServer -->|3. OAuth認可画面| LINE
-    LINE -->|4. 認証コードコールバック| ConnectApp
-    ConnectApp -->|5. コード・State検証| AuthServer
-    AuthServer -->|6. Custom Token発行| ConnectApp
-    ConnectApp -->|7. signInWithCustomToken| FAuth
-    ConnectApp -->|8. connectUsers ドキュメント更新| FS
-    ConnectApp -->|9. チケット予約 / 在庫トランザクション| FS
-    ConnectApp -->|10. セットリスト音源動的再生| YT
-    ConnectApp -->|11. 公式インスタグラム埋め込み表示| IG
+    ConnectApp -->|2. /api/line/get-url でURL生成| LINE
+    LINE -->|3. 認証コードコールバック| ConnectApp
+    ConnectApp -->|4. /api/line/login でトークン交換 & Custom Token生成| FAuth
+    ConnectApp -->|5. signInWithCustomToken| FAuth
+    ConnectApp -->|6. connectUsers ドキュメント更新| FS
+    ConnectApp -->|7. チケット予約 / 在庫トランザクション| FS
+    ConnectApp -->|8. セットリスト音源動的再生| YT
+    ConnectApp -->|9. 公式インスタグラム埋め込み表示| IG
 ```
 
 ---
@@ -137,9 +134,9 @@ graph TD
 ## 3. 認証・認可アーキテクチャ (LINE Login & User State)
 
 ### 3.1. LINE ログイン & Firebase Custom Token 認証フロー
-1. **ログイン要求**: ヘッダーの「Login」ボタンまたは予約・マイページ遷移時のインターセプトにより、`globalGetLineLoginUrl` へリクエスト。
+1. **ログイン要求**: ヘッダーの「Login」ボタンまたは予約・マイページ遷移時のインターセプトにより、自前API `/api/line/get-url` へリクエストして認可URLを取得。
 2. **戻り先保持**: `redirectAfterLogin` パラメータに現在の URL を付与し、ログイン成功後に元の画面（例: `/ticket-reserve/[id]`）へ自動復帰させる。
-3. **中間認証サーバー連携**: 認可コード（`code`）および `state` を受領した `/callback` 画面が `globalLineLoginUrl`（POST）を呼び出し、LINE プロフィール情報と Firebase Custom Token を取得。
+3. **自前API Routes認証連携**: 認可コード（`code`）および `state` を受領した `/callback` 画面が `/api/line/login`（POST）を呼び出し、LINE トークン交換・検証と Firebase Admin SDK による Custom Token を取得。
 4. **Firebase サインイン**: `signInWithCustomToken(auth, customToken)` によりセキュアにサインインを完了。
 5. **ユーザー同期 (`connectUsers`)**: Firestore の `connectUsers/{uid}` ドキュメントに `displayName`, `pictureUrl`, `lastLoginAt` を `merge: true` で自動保存。
 6. **利用規約判定**: `agreedAt` が未設定のユーザーは自動的に `/agreement` へリダイレクトし、規約同意を必須化。
@@ -224,7 +221,7 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=...
 # 型チェックおよび Turbopack による本番ビルド検証
 npm run build
 
-# ローカル起動確認
+# ローカル起動確認 (http://localhost:3004)
 npm run dev
 ```
 

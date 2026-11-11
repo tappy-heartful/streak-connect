@@ -9,7 +9,7 @@ import {
   showDialog,
   deleteTicket,
   formatDateToYMDDot,
-  globalGetLineLoginUrl,
+  redirectToLineLogin,
   formatPrice,
 } from "@/src/lib/functions";
 import Link from "next/link";
@@ -72,25 +72,8 @@ export default function LiveDetailClient({ id }: LiveDetailClientProps) {
       );
       if (!ok) return;
 
-      try {
-        showSpinner();
-        const currentUrl = window.location.origin + "/ticket-reserve/" + id;
-        const fetchUrl = `${globalGetLineLoginUrl}&redirectAfterLogin=${encodeURIComponent(
-          currentUrl
-        )}`;
-        const res = await fetch(fetchUrl);
-        const { loginUrl } = await res.json();
-        if (loginUrl) {
-          window.location.href = loginUrl;
-        } else {
-          throw new Error("ログインURLの取得に失敗しました");
-        }
-      } catch (e: any) {
-        console.error(e);
-        await showDialog("ログイン処理中にエラーが発生しました。", true);
-      } finally {
-        hideSpinner();
-      }
+      const currentUrl = window.location.origin + "/ticket-reserve/" + id;
+      await redirectToLineLogin(currentUrl);
       return;
     }
     router.push(`/ticket-reserve/${id}`);

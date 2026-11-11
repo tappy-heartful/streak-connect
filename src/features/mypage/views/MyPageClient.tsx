@@ -11,7 +11,7 @@ import {
   deleteTicket,
   archiveAndDeleteDoc,
   clearAllAppSession,
-  globalGetLineLoginUrl,
+  redirectToLineLogin,
 } from "@/src/lib/functions";
 import Link from "next/link";
 import styles from "./mypage.module.css";
@@ -46,31 +46,7 @@ export default function MyPageClient() {
       return;
     }
 
-    try {
-      showSpinner();
-      const currentUrl = window.location.href;
-      const fetchUrl = `${globalGetLineLoginUrl}&redirectAfterLogin=${encodeURIComponent(
-        currentUrl
-      )}`;
-
-      const res = await fetch(fetchUrl);
-      const { loginUrl } = await res.json();
-
-      if (loginUrl) {
-        window.location.href = loginUrl;
-      } else {
-        throw new Error("ログインURLの取得に失敗しました");
-      }
-    } catch (e: any) {
-      console.error(e);
-      await showDialog(
-        "ログイン処理中にエラーが発生しました。トップページに戻ります。",
-        true
-      );
-      router.push("/home");
-    } finally {
-      hideSpinner();
-    }
+    await redirectToLineLogin(window.location.href);
   };
 
   const loadMyTickets = async () => {

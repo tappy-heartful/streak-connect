@@ -18,7 +18,7 @@ LINEログインを活用したパスワードレスでストレスのない認�
 | **UI Library** | React / React DOM | `19.2.3` |
 | **Language** | TypeScript | `^5` (Strict モード運用) |
 | **BaaS / Database** | Cloud Firestore / Firebase Authentication | `^12.8.0` |
-| **外部連携 (LINE)** | LINE Login API v2.1 (OAuth 2.0 / Custom Token認証) | 中間認証サーバー経由でのトークン交換・プロファイル同期 |
+| **外部連携 (LINE)** | LINE Login API v2.1 (OAuth 2.0 / Custom Token認証) | 自前 Next.js API Routes 経由でのトークン交換・プロファイル同期 |
 | **QRコード発券** | `qrcode.react` (`QRCodeSVG`) | `^4.2.0` (デジタルチケットQRコード動的生成) |
 | **Styling** | CSS Modules + Tailwind CSS v4 | 各画面固有の `*.module.css` 必須運用、styled-jsx全廃 |
 | **Icons / Assets** | Font Awesome 6 (Solid / Brands) | 全タイトル（`h1`含む）・アクションのアイコン統一 |
@@ -41,11 +41,11 @@ LINEログインを活用したパスワードレスでストレスのない認�
 ### 2.1. LINE ログイン & セッション管理フロー
 
 1. **ログイン開始**:
-   - ヘッダー右上の「Login」リンク、またはライブ詳細・予約画面からのアクション時に、`globalGetLineLoginUrl` へリクエストを送信。
+   - ヘッダー右上の「Login」リンク、またはライブ詳細・予約画面からのアクション時に、自前API `/api/line/get-url` へリクエストを送信してLINE認可URLを取得。
    - 現在のアクセスURL（`window.location.href`）を `redirectAfterLogin` に付与。
-2. **中間認証サーバー連携**:
+2. **自前 API Routes 認証連携**:
    - LINE側のOAuth認可を経て、`/callback` 画面に `code` と `state` が返却される。
-   - `/callback` が中間認証サーバー（`globalLineLoginUrl`）へPOSTリクエストを送信し、トークン検証および Firebase Custom Token を取得。
+   - `/callback` が自前サーバーの `/api/line/login` へPOSTリクエストを送信し、LINEトークン交換・IDトークン検証および Firebase Admin SDK による Custom Token を取得。
 3. **Firebase サインイン**:
    - `signInWithCustomToken(auth, customToken)` をクライアントで実行。
    - 認証状態の変化は `AuthContext` の `onAuthStateChanged` が監視し、アプリ全体へ伝播。
