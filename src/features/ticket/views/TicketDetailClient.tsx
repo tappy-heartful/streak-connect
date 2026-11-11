@@ -351,7 +351,8 @@ export default function TicketDetailClient({ id }: TicketDetailClientProps) {
             <div style={{ textAlign: "center", marginTop: "40px" }}>
               <Link
                 href={`/enquete-answer/${ticket.liveId}`}
-                className="btn-enquete"
+                className="btn-action btn-enquete-soft"
+                style={{ display: "inline-flex" }}
               >
                 <i className="fa-solid fa-clipboard-question"></i> 来場者アンケートに回答する
               </Link>

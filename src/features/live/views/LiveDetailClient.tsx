@@ -107,6 +107,7 @@ export default function LiveDetailClient({ id }: LiveDetailClientProps) {
   const isPastOrToday = live.date <= todayStr;
   const isBefore = live.acceptStartDate && todayStr < live.acceptStartDate;
   const isAfter = live.acceptEndDate && todayStr > live.acceptEndDate;
+  const isInPeriod = isAccepting && !isBefore && !isAfter;
 
   const max = live.ticketStock || 0;
   const current = live.totalReserved || 0;
@@ -215,86 +216,147 @@ export default function LiveDetailClient({ id }: LiveDetailClientProps) {
             </div>
           )}
 
-          {/* 予約・アンケートアクション */}
-          <div className="action-area" style={{ marginTop: "40px" }}>
+          {/* アクションボタンエリア */}
+          <div className="live-actions" style={{ marginTop: "40px" }}>
             {isPast ? (
-              <span className="btn-disabled">この公演は終了しました</span>
-            ) : isReserved ? (
-              <div className="btn-group">
-                <Link
-                  href={`/ticket-detail/${id}_${user?.uid}`}
-                  className="btn-primary"
+              <>
+                <button
+                  className="btn-action disabled"
+                  style={{ width: "100%", padding: "15px", borderRadius: "50px" }}
+                  disabled
                 >
-                  <i className="fa-solid fa-qrcode"></i> チケットを表示
-                </Link>
-                {isAccepting && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleReserveClick}
-                      className="btn-secondary"
+                  この公演は終了しました
+                </button>
+                {isPastOrToday && (
+                  <div className="reserved-actions">
+                    <Link
+                      href={`/enquete-answer/${id}`}
+                      className="btn-action btn-enquete-soft"
                     >
-                      <i className="fa-solid fa-pen-to-square"></i> 予約変更
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCancel}
-                      className="btn-danger"
-                    >
-                      <i className="fa-solid fa-trash-can"></i> 予約取消
-                    </button>
-                  </>
+                      <i className="fa-solid fa-clipboard-question"></i> アンケートに回答
+                    </Link>
+                  </div>
                 )}
-              </div>
-            ) : !isAccepting ? (
-              <span className="btn-disabled">
-                {isBefore
-                  ? "予約受付開始前です"
-                  : isAfter
-                  ? "予約受付は終了しました"
-                  : "予約受付期間外です"}
-              </span>
-            ) : isSoldOut ? (
-              <div className="btn-group">
-                <span className="btn-disabled">
-                  予定枚数に達したため受付を終了しました
-                </span>
-                {!user && (
-                  <button
-                    type="button"
-                    onClick={handleReserveClick}
-                    className="btn-secondary"
-                    style={{ marginTop: "10px" }}
+              </>
+            ) : !isInPeriod ? (
+              <div className="action-box" style={{ textAlign: "center" }}>
+                {isReserved && (
+                  <Link
+                    href={`/ticket-detail/${id}_${user?.uid}`}
+                    className="btn-action btn-view-white"
+                    style={{ display: "block", marginBottom: "15px" }}
                   >
-                    すでに予約済みの方はこちら（ログイン）
-                  </button>
+                    <i className="fa-solid fa-qrcode"></i> チケットを表示
+                  </Link>
+                )}
+                <button
+                  className="btn-action disabled"
+                  style={{ width: "100%", padding: "15px", borderRadius: "50px" }}
+                  disabled
+                >
+                  {isBefore
+                    ? "予約受付前"
+                    : isAfter
+                    ? "予約受付終了"
+                    : "予約受付停止中"}
+                </button>
+                {live.acceptStartDate && (
+                  <p className={styles.acceptPeriod}>
+                    受付期間: {live.acceptStartDate} 〜 {live.acceptEndDate}
+                  </p>
+                )}
+                {isPastOrToday && (
+                  <div className="reserved-actions">
+                    <Link
+                      href={`/enquete-answer/${id}`}
+                      className="btn-action btn-enquete-soft"
+                    >
+                      <i className="fa-solid fa-clipboard-question"></i> アンケートに回答
+                    </Link>
+                  </div>
                 )}
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={handleReserveClick}
-                className="btn-primary pulse"
-              >
-                <i className="fa-solid fa-ticket"></i> チケットを予約する
-              </button>
-            )}
+              <div className="action-box">
+                {isReserved ? (
+                  <div className="reserved-actions">
+                    <Link
+                      href={`/ticket-detail/${id}_${user?.uid}`}
+                      className="btn-action btn-view-white"
+                    >
+                      <i className="fa-solid fa-qrcode"></i> チケットを表示
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleReserveClick}
+                      className="btn-action btn-reserve-red"
+                    >
+                      <i className="fa-solid fa-pen-to-square"></i> 予約内容を変更
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-action btn-delete-outline"
+                      onClick={handleCancel}
+                    >
+                      <i className="fa-solid fa-trash-can"></i> この予約を取り消す
+                    </button>
+                    {isPastOrToday && (
+                      <Link
+                        href={`/enquete-answer/${id}`}
+                        className="btn-action btn-enquete-soft"
+                      >
+                        <i className="fa-solid fa-clipboard-question"></i> アンケートに回答
+                      </Link>
+                    )}
+                  </div>
+                ) : (
+                  <div className="reserved-actions">
+                    {!user ? (
+                      <button
+                        type="button"
+                        onClick={handleReserveClick}
+                        className="btn-action btn-reserve-red"
+                      >
+                        <i
+                          className={`fa-solid ${
+                            isSoldOut ? "fa-user-check" : "fa-ticket"
+                          }`}
+                        ></i>
+                        {isSoldOut
+                          ? "予約済みの方はこちら"
+                          : "このライブを予約する / RESERVE"}
+                      </button>
+                    ) : (
+                      !isSoldOut && (
+                        <button
+                          type="button"
+                          onClick={handleReserveClick}
+                          className="btn-action btn-reserve-red"
+                        >
+                          <i className="fa-solid fa-ticket"></i> このライブを予約する / RESERVE
+                        </button>
+                      )
+                    )}
 
-            {isAccepting && live.acceptStartDate && live.acceptEndDate && (
-              <div className={styles.acceptPeriod}>
-                受付期間: {live.acceptStartDate} 〜 {live.acceptEndDate}
+                    {!isSoldOut && live.acceptEndDate && (
+                      <p className={styles.acceptPeriod}>
+                        受付終了: {live.acceptEndDate}
+                      </p>
+                    )}
+
+                    {isPastOrToday && (
+                      <Link
+                        href={`/enquete-answer/${id}`}
+                        className="btn-action btn-enquete-soft"
+                      >
+                        <i className="fa-solid fa-clipboard-question"></i> アンケートに回答
+                      </Link>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
-
-          {/* アンケートボタン */}
-          {isPastOrToday && isReserved && (
-            <div style={{ textAlign: "center", marginTop: "40px" }}>
-              <Link href={`/enquete-answer/${id}`} className="btn-enquete">
-                <i className="fa-solid fa-clipboard-question"></i> アンケートに回答する
-              </Link>
-            </div>
-          )}
         </div>
       </section>
 

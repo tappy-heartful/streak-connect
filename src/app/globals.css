@@ -223,18 +223,35 @@ body {
     color: #000;
 }
 
-/* アンケート回答ボタン (白背景＋赤枠) */
+/* アンケート回答ボタン (単体指定・btn-action併用どちらでも美しく表示) */
+.btn-enquete,
 .btn-enquete-soft {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 28px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 50px;
+    text-decoration: none;
+    cursor: pointer;
     background: #fff;
     border: 2px solid #e7211a;
     color: #e7211a;
     box-shadow: 0 4px 12px rgba(231, 33, 26, 0.15);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    width: auto;
+    max-width: 100%;
 }
 
+.btn-enquete:hover,
 .btn-enquete-soft:hover {
     background: #e7211a;
     color: #fff;
     transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(231, 33, 26, 0.35);
 }
 
 /* 予約済みアクションの並び調整 */

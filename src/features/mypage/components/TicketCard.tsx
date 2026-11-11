@@ -25,6 +25,11 @@ export function TicketCard({ ticket, onRefresh, onCopy }: TicketCardProps) {
   return (
     <div className={styles.ticketCardDetailMode}>
       <div className={styles.cardStatusArea}>
+        {!canModify && (
+          <span className={styles.statusBadge}>
+            {isPast ? "終了" : "受付期間外"}
+          </span>
+        )}
         <div className={styles.resNoMini}>
           {ticket.resType === "invite"
             ? "INVITATION"
@@ -101,7 +106,7 @@ export function TicketCard({ ticket, onRefresh, onCopy }: TicketCardProps) {
           </Link>
         </div>
 
-        {canModify ? (
+        {canModify && (
           <div className={styles.ticketActions}>
             <Link
               href={`/ticket-reserve/${ticket.liveId}`}
@@ -118,12 +123,6 @@ export function TicketCard({ ticket, onRefresh, onCopy }: TicketCardProps) {
             >
               <i className="fa-solid fa-trash-can"></i> 予約取消
             </button>
-          </div>
-        ) : (
-          <div className={styles.ticketActions}>
-            <span className={styles.statusBadge}>
-              {isPast ? "終了" : "受付期間外"}
-            </span>
           </div>
         )}
 
