@@ -229,6 +229,7 @@ interface Ticket {
     reservationNo: string;   // グループ予約番号 ("5821-1")
     companions: string[];    // 来場者一覧
   }[];
+  isReminderSent?: boolean;  // 当日リマインド送信済みフラグ (開場前送信でtrue)
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -253,7 +254,24 @@ interface EnqueteAnswer {
 
 ---
 
-## 5. 品質保証 & コーディング規約 (Rules & Guidelines)
+## 5. LINE通知 & Next.js Cron API × 軽量GAS連携アーキテクチャ
+
+### 5.1. 予約完了時の即時LINE通知 (Vercel Server Actions)
+- チケット予約・変更の確定時に、サーバーサイド（`ticket-server-actions.ts`）から直接 LINE Messaging API（Connect公式アカウント）を叩いて即時 Push 通知を送信。
+- 従来の GAS 側ポーリング（`isLineNotified` 監視）を廃止し、タイムラグのない確実な通知とデータベース負荷の軽減を実現。
+- 万が一の通信障害時でもチケット予約トランザクション自体はブロックせず、エラーログを記録して安全にフォールバック。
+
+### 5.2. 当日リマインド通知 (/api/cron/reminder × `gas/【Connect】Reminder_Bot.js`)
+- **Next.js Cron API (`/api/cron/reminder`)**:
+  - `CRON_SECRET`（Bearer認証トークン / `x-cron-secret`）による厳格なエンドポイント保護（`src/lib/cron-auth.ts`）。
+  - 公演当日のチケット（`isReminderSent == false`）を検出し、開場4時間前〜直前のタイミングで自動的にリマインドLINEを送信。
+  - 送信完了時に `isReminderSent: true` をアトミックに更新し、重複送信を防止。
+- **軽量GAS連携 (`gas/【Connect】Reminder_Bot.js`)**:
+  - GAS側には外部ライブラリ（FirestoreApp等）やFirebase秘密鍵、LINEトークンを一切持たせず、Vercelの `/api/cron/reminder` を15分おきにPOST呼び出しするトリガー実行のみに特化。
+
+---
+
+## 6. 品質保証 & コーディング規約 (Rules & Guidelines)
 
 1. **Feature-based Architecture**: すべての機能コードは `src/features/<feature_name>/` 配下にカプセル化し、`src/app/` の `page.tsx` は薄いサーバーコンポーネントとして保つ。
 2. **CSS Modules の徹底**: `styled-jsx` や過剰なインラインスタイルの使用を禁止し、コンポーネントと同階層の `*.module.css` にスタイルを分離する。

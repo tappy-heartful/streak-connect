@@ -174,6 +174,10 @@ graph TD
 - ユーザーが退会する際、登録済みの全チケットをトランザクションで安全に在庫返却・取消。
 - ユーザーデータは物理削除する前に `archives/connectUsers_{uid}_{timestamp}` に完全バックアップ退避してから削除を実行。
 
+### 4.6. 予約完了時即時LINE通知 & Next.js Cron API × 軽量GAS連携
+- **予約時即時通知**: 予約確定時に Vercel サーバーサイド（`ticket-server-actions.ts`）から直接 LINE Messaging API を叩いて即時 Push 通知を送信。従来のポーリング用 `isLineNotified` を全廃。
+- **当日リマインドCron (`/api/cron/reminder` × `gas/【Connect】Reminder_Bot.js`)**: GAS側にはトークンやライブラリを持たせず、`CRON_SECRET` 認証付きの Next.js エンドポイントを15分おきに叩くだけの軽量設計。開場4時間前〜直前のチケット（`isReminderSent == false`）へ自動リマインドを配信。
+
 ---
 
 ## 5. Firestore コレクション設計 (Data Models)
@@ -182,7 +186,7 @@ graph TD
 | :--- | :--- | :--- |
 | `connectUsers` | 顧客・ファンユーザー情報 | `displayName`, `pictureUrl`, `agreedAt`, `status`, `lastLoginAt`, `createdAt` |
 | `lives` | ライブ公演情報 | `title`, `date`, `venue`, `open`, `start`, `advance`, `door`, `flyerUrl`, `ticketStock`, `totalReserved`, `isAcceptReserve`, `acceptStartDate`, `acceptEndDate`, `setlist`, `caution`, `note` |
-| `tickets` | チケット予約データ | `liveId`, `uid`, `resType` (general/invite), `reservationNo`, `representativeName`, `companions`, `totalCount`, `groups`, `createdAt`, `updatedAt` |
+| `tickets` | チケット予約データ | `liveId`, `uid`, `resType` (general/invite), `reservationNo`, `representativeName`, `companions`, `totalCount`, `groups`, `isReminderSent`, `createdAt`, `updatedAt` |
 | `configs/enqueteQuestions` | アンケート設問マスタ | `questions` (`id`, `title`, `type`, `required`, `options`) |
 | `enqueteAnswers` | 来場者アンケート回答 | `liveId`, `uid`, `common` (設問IDごとの回答値), `submittedAt` |
 | `scores` | 楽曲マスタ (セットリスト音源参照用) | `title`, `referenceTrack` (YouTube URL), `youtubeId` |

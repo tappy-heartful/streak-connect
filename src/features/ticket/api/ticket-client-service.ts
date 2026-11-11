@@ -10,6 +10,7 @@ import {
 import { TicketData, ReserveGroup } from "../types/ticket";
 import { toPlainObject } from "@/src/lib/firestore/utils";
 import { writeLog } from "@/src/lib/functions";
+import { sendTicketReservationNoticeAction } from "./ticket-server-actions";
 
 /**
  * チケットの取得（連番等の不正な予約番号があれば4桁ランダムに自動修復）
@@ -193,7 +194,6 @@ export async function saveTicketReservation({
       resType,
       totalCount: newTotalCount,
       reservationNo: baseNo,
-      isLineNotified: existingTicket?.isLineNotified ?? false,
       isReminderSent: existingTicket?.isReminderSent ?? false,
       updatedAt: serverTimestamp(),
     };
@@ -221,10 +221,18 @@ export async function saveTicketReservation({
     t.set(ticketRef, ticketData, { merge: true });
   });
 
+  // 予約ログの記録
   await writeLog({
     dataId: ticketId,
     action: existingTicket ? "Ticket予約変更" : "Ticket新規予約",
     status: "success",
   });
+
+  // 予約完了LINE通知（Vercelサーバーから即時送信、失敗しても画面の予約完了は阻害しない）
+  try {
+    await sendTicketReservationNoticeAction(ticketId, !!existingTicket);
+  } catch (noticeErr) {
+    console.error("予約通知送信エラー:", noticeErr);
+  }
 }
 
