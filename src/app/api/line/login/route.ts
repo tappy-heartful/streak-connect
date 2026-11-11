@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/src/lib/firebase-admin";
 import crypto from "crypto";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   try {
     const { code, state, redirectUri } = await req.json();

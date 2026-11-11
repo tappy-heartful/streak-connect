@@ -35,21 +35,37 @@ export const globalLineLoginUrl = '/api/line/login';
 export async function redirectToLineLogin(redirectAfterLogin?: string) {
   try {
     showSpinner();
-    const currentUrl = redirectAfterLogin || (typeof window !== 'undefined' ? window.location.href : '');
+    const currentUrl =
+      redirectAfterLogin ||
+      (typeof window !== "undefined" ? window.location.href : "");
     const fetchUrl = currentUrl
-      ? `${globalGetLineLoginUrl}?redirectAfterLogin=${encodeURIComponent(currentUrl)}`
+      ? `${globalGetLineLoginUrl}?redirectAfterLogin=${encodeURIComponent(
+          currentUrl
+        )}`
       : globalGetLineLoginUrl;
 
     const res = await fetch(fetchUrl);
-    const data = await res.json();
-    if (data.loginUrl) {
+    let data: any = {};
+    const text = await res.text();
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(
+        `サーバーエラーが発生しました (HTTP ${res.status}): ${text.slice(0, 100)}`
+      );
+    }
+
+    if (res.ok && data.loginUrl) {
       window.location.href = data.loginUrl;
     } else {
-      throw new Error(data.error || 'ログインURLの取得に失敗しました');
+      throw new Error(data.error || "ログインURLの取得に失敗しました");
     }
   } catch (e: any) {
-    console.error('LINEログイン遷移エラー:', e);
-    await showDialog('ログイン処理中にエラーが発生しました。', true);
+    console.error("LINEログイン遷移エラー:", e);
+    await showDialog(
+      e?.message || "ログイン処理中にエラーが発生しました。",
+      true
+    );
     hideSpinner();
   }
 }
