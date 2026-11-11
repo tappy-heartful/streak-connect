@@ -5,19 +5,44 @@ import { getStorage, Storage } from "firebase-admin/storage";
 
 let app: App | null = null;
 
+function safeParseJson(raw: string): any {
+  let cleaned = raw.trim();
+  // 前後のクォートを取り除く
+  if (
+    (cleaned.startsWith("'") && cleaned.endsWith("'")) ||
+    (cleaned.startsWith('"') && cleaned.endsWith('"'))
+  ) {
+    cleaned = cleaned.slice(1, -1).trim();
+  }
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (err1: any) {
+    // 制御文字（生の改行）などが混入している場合のフォールバック
+    try {
+      // 未エスケープの改行文字をエスケープして再試行
+      const sanitized = cleaned
+        .replace(/\r\n/g, "\\n")
+        .replace(/\n/g, "\\n")
+        .replace(/\r/g, "\\n");
+      return JSON.parse(sanitized);
+    } catch (err2: any) {
+      console.error(
+        "❌ [Firebase Admin] FIREBASE_SERVICE_ACCOUNT パース失敗:",
+        err1?.message,
+        err2?.message
+      );
+      throw new Error(`FIREBASE_SERVICE_ACCOUNT の JSON パースに失敗しました: ${err1?.message}`);
+    }
+  }
+}
+
 function getServiceAccountCredential() {
   // 1. FIREBASE_SERVICE_ACCOUNT (JSON文字列) の検証
   const rawSa = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (rawSa) {
     try {
-      let cleaned = rawSa.trim();
-      if (
-        (cleaned.startsWith("'") && cleaned.endsWith("'")) ||
-        (cleaned.startsWith('"') && cleaned.endsWith('"'))
-      ) {
-        cleaned = cleaned.slice(1, -1).trim();
-      }
-      const sa = JSON.parse(cleaned);
+      const sa = safeParseJson(rawSa);
       if (sa.project_id && sa.client_email && sa.private_key) {
         return cert({
           projectId: sa.project_id,
@@ -26,10 +51,7 @@ function getServiceAccountCredential() {
         });
       }
     } catch (e: any) {
-      console.error(
-        "❌ [Firebase Admin] FIREBASE_SERVICE_ACCOUNT の JSON パースに失敗しました:",
-        e?.message
-      );
+      console.error("❌ [Firebase Admin] Credential 取得エラー:", e?.message);
     }
   }
 

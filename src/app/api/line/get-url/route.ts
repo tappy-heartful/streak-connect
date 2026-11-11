@@ -7,21 +7,35 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const origin = req.headers.get("origin") || new URL(req.url).origin;
     const redirectAfterLogin = searchParams.get("redirectAfterLogin") || "";
     const pwaSessionId = searchParams.get("pwaSessionId") || "";
+
+    // ホスト名・オリジンの判定 (Vercelリバースプロキシ対応)
+    const forwardedProto = req.headers.get("x-forwarded-proto") || "https";
+    const forwardedHost =
+      req.headers.get("x-forwarded-host") || req.headers.get("host");
+    const origin =
+      req.headers.get("origin") ||
+      (forwardedHost ? `${forwardedProto}://${forwardedHost}` : new URL(req.url).origin);
 
     const clientId =
       process.env.LINE_CLIENT_ID_CONNECT || process.env.LINE_CLIENT_ID_NAVI;
 
     if (!clientId) {
       console.error(
-        "❌ [API /api/line/get-url] LINE_CLIENT_ID_CONNECT が環境変数に設定されていません。"
+        "❌ [API /api/line/get-url] LINE_CLIENT_ID_CONNECT が未設定です"
       );
       return NextResponse.json(
         {
-          error:
-            "サーバー設定エラー: LINE_CLIENT_ID_CONNECT が設定されていません。Vercelの環境変数を確認してください。",
+          error: "Vercel 環境変数エラー: LINE_CLIENT_ID_CONNECT が設定されていません。",
+          envStatus: {
+            LINE_CLIENT_ID_CONNECT: !!process.env.LINE_CLIENT_ID_CONNECT,
+            LINE_CLIENT_ID_NAVI: !!process.env.LINE_CLIENT_ID_NAVI,
+            FIREBASE_SERVICE_ACCOUNT: !!process.env.FIREBASE_SERVICE_ACCOUNT,
+            FIREBASE_PROJECT_ID: !!process.env.FIREBASE_PROJECT_ID,
+            FIREBASE_CLIENT_EMAIL: !!process.env.FIREBASE_CLIENT_EMAIL,
+            FIREBASE_PRIVATE_KEY: !!process.env.FIREBASE_PRIVATE_KEY,
+          },
         },
         { status: 500 }
       );
@@ -29,6 +43,7 @@ export async function GET(req: NextRequest) {
 
     const state = crypto.randomBytes(16).toString("hex");
 
+    // Firestore に state を保存
     try {
       await adminDb.collection("oauthStates").doc(state).set({
         createdAt: new Date(),
@@ -37,10 +52,21 @@ export async function GET(req: NextRequest) {
         pwaSessionId,
       });
     } catch (dbErr: any) {
-      console.error("❌ [API /api/line/get-url] Firestore (oauthStates) への保存に失敗:", dbErr);
+      console.error(
+        "❌ [API /api/line/get-url] Firestore (oauthStates) 保存失敗:",
+        dbErr
+      );
       return NextResponse.json(
         {
-          error: `Firestore接続エラー: ${dbErr?.message || "oauthStatesの保存に失敗しました"}`,
+          error: `Firestore接続・認証エラー: ${dbErr?.message || "oauthStatesの保存に失敗しました"}`,
+          stack: dbErr?.stack,
+          envStatus: {
+            hasServiceAccount: !!process.env.FIREBASE_SERVICE_ACCOUNT,
+            serviceAccountLength: process.env.FIREBASE_SERVICE_ACCOUNT?.length || 0,
+            hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
+            hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+            hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
+          },
         },
         { status: 500 }
       );
@@ -53,9 +79,12 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ loginUrl });
   } catch (err: any) {
-    console.error("❌ [API /api/line/get-url] 予期せぬエラー:", err);
+    console.error("❌ [API /api/line/get-url] 全体ハンドラーエラー:", err);
     return NextResponse.json(
-      { error: err?.message || "Failed to generate URL" },
+      {
+        error: `サーバー内部エラー: ${err?.message || "Unknown error"}`,
+        stack: err?.stack,
+      },
       { status: 500 }
     );
   }
