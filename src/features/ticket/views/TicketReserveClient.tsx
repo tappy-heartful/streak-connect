@@ -385,18 +385,21 @@ export default function TicketReserveClient({ id }: TicketReserveClientProps) {
                   <h3 className={styles.subTitle}>REPRESENTATIVE</h3>
                   <div className={styles.formGroup}>
                     <label>代表者氏名</label>
+                    <p className={styles.formNote}>
+                      ※ニックネームやあだ名などを入力してください。個人情報保護のため、本名の入力はご遠慮ください。
+                    </p>
                     <input
                       type="text"
                       value={representativeName}
                       onChange={(e) => setRepresentativeName(e.target.value)}
-                      placeholder="例: 吹奏 太郎"
+                      placeholder="例: ステレオ 太郎"
                       required
                     />
                   </div>
 
                   <h3 className={styles.subTitle}>COMPANIONS</h3>
                   <p className={styles.formNote}>
-                    ※同伴者様がいる場合は、お名前を入力してください。
+                    ※同伴者様がいる場合は、ニックネームやあだ名等を入力してください（本名の入力はご遠慮ください）。
                   </p>
                   {generalCompanions.map((comp, idx) => (
                     <div key={idx} className={styles.formGroup}>
@@ -448,6 +451,9 @@ export default function TicketReserveClient({ id }: TicketReserveClientProps) {
                   <p className={styles.formNote}>
                     ※招待するグループごと（例: 家族、職場、友人）にまとめて登録できます。
                   </p>
+                  <p className={styles.formNote}>
+                    ※個人情報保護のため、来場者名にはニックネームやあだ名等を入力し、本名の入力はご遠慮ください。
+                  </p>
 
                   {inviteGroups.map((group, gIdx) => (
                     <div key={gIdx} className={styles.groupCard}>
@@ -491,7 +497,7 @@ export default function TicketReserveClient({ id }: TicketReserveClientProps) {
                                   e.target.value
                                 )
                               }
-                              placeholder={`来場者 ${cIdx + 1} のお名前`}
+                              placeholder={`来場者 ${cIdx + 1} のお名前（ニックネーム）`}
                             />
                             <button
                               type="button"

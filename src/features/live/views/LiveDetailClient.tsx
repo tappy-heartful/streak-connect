@@ -172,8 +172,8 @@ export default function LiveDetailClient({ id }: LiveDetailClientProps) {
             </div>
           </div>
 
-          {/* YouTube セットリストプレイヤー */}
-          {live.setlist && (
+          {/* YouTube セットリストプレイヤー（公演当日以降に公開） */}
+          {live.setlist && isPastOrToday && (
             <YoutubeSetlistPlayer
               setlist={live.setlist}
               title="セットリスト 参考音源"
