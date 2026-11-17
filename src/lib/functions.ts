@@ -13,9 +13,9 @@ import {
   Query,
   QuerySnapshot,
   DocumentSnapshot,
-  collection, 
-  query, 
-  where, 
+  collection,
+  query,
+  where,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { showDialog } from "@/src/components/CommonDialog"; // 先ほど作った共通ダイアログ
@@ -150,7 +150,7 @@ export function extractYouTubeId(input: string): string {
 
 export function buildYouTubeHtml(youtubeInput: string | string[], showNotice = false): string {
   if (!youtubeInput) return '';
-  const videoIds = Array.isArray(youtubeInput) 
+  const videoIds = Array.isArray(youtubeInput)
     ? youtubeInput.map(extractYouTubeId).filter(id => id.length === 11)
     : [extractYouTubeId(youtubeInput)].filter(id => id.length === 11);
 
@@ -256,8 +256,8 @@ export async function archiveAndDeleteDoc(collectionName: string, docId: string)
  * @param isConfirm 削除前に確認ダイアログを表示するか
  */
 export async function deleteTicket(
-  liveId: string, 
-  uid: string | undefined, 
+  liveId: string,
+  uid: string | undefined,
   isConfirm = true
 ): Promise<boolean> {
   // 1. 基本チェック
@@ -319,7 +319,7 @@ export async function deleteTicket(
 
   } catch (e: any) {
     console.error("Delete ticket error:", e);
-    
+
     // エラーログの記録（必要に応じて）
     await writeLog({
       dataId: ticketId,
