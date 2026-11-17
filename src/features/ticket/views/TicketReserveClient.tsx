@@ -45,8 +45,15 @@ export default function TicketReserveClient({ id, initialLive }: TicketReserveCl
   const [existingTicket, setExistingTicket] = useState<TicketData | null>(null);
 
   useEffect(() => {
+    return () => {
+      hideSpinner();
+    };
+  }, []);
+
+  useEffect(() => {
     if (authLoading) return;
     if (!user) {
+      hideSpinner();
       router.push("/home");
       return;
     }
@@ -296,11 +303,7 @@ export default function TicketReserveClient({ id, initialLive }: TicketReserveCl
   };
 
   if (authLoading || fetching) {
-    return (
-      <div id="spinner-overlay" style={{ display: "flex" }}>
-        <div className="spinner"></div>
-      </div>
-    );
+    return null;
   }
   if (!live) return null;
 

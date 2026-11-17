@@ -108,20 +108,26 @@ export function clearAllAppSession() {
 // --- スピナー制御 (jQueryを使わず実装) ---
 export function showSpinner() {
   if (typeof document === 'undefined') return;
-  let overlay = document.getElementById('spinner-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
+  const overlays = document.querySelectorAll('#spinner-overlay');
+  if (overlays.length > 0) {
+    overlays.forEach((el) => {
+      (el as HTMLElement).style.display = 'flex';
+    });
+  } else {
+    const overlay = document.createElement('div');
     overlay.id = 'spinner-overlay';
     overlay.innerHTML = '<div class="spinner"></div>';
     document.body.appendChild(overlay);
+    overlay.style.display = 'flex';
   }
-  overlay.style.display = 'flex';
 }
 
 export function hideSpinner() {
   if (typeof document === 'undefined') return;
-  const overlay = document.getElementById('spinner-overlay');
-  if (overlay) overlay.style.display = 'none';
+  const overlays = document.querySelectorAll('#spinner-overlay');
+  overlays.forEach((el) => {
+    (el as HTMLElement).style.display = 'none';
+  });
 }
 
 // --- Instagram 埋め込み用 ---

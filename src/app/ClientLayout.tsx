@@ -61,6 +61,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <Footer />
         <CommonDialog />
         <ImagePreviewModal />
+        <div id="spinner-overlay" style={{ display: "none" }}>
+          <div className="spinner"></div>
+        </div>
         <Script
           src="https://www.instagram.com/embed.js"
           strategy="afterInteractive"

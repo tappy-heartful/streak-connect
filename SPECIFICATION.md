@@ -285,8 +285,8 @@ interface EnqueteAnswer {
 7. **Server-side Pre-fetching & Server Actions 運用 (streak-navi 準拠)**:
    - ライブ詳細、チケット詳細、チケット予約、マイページなどの各画面において、`*-server-actions.ts`（Firebase Admin SDK）経由でサーバーサイドからデータを取得。Safari WebKit 等のブラウザ環境における Firestore Client SDK の WebChannel ロングポーリング待機（30秒タイムアウト）や N+1 直列読み込み遅延を根本排除。
    - `AuthContext` においても `getConnectUserServer(uid)` Server Action を介してユーザー情報を即座に同期し、認証状態の初期化待ちを最小化。
-   - `TicketReserveClient` および `MyPageClient` において、データ取得中（`loading || fetching`）はヘッダー・フッター間の空白化を防ぐため `#spinner-overlay` を明示的に表示。
 8. **Instant Navigation Spinner**:
-   - `ClientLayout.tsx` において、内部リンク（`<a>`タグ）クリック時に即座にフルスクリーンスピナーを表示し、画面遷移完了（`RouteChangeListener`）で即座に非表示にする仕組みを導入。
+   - `ClientLayout.tsx` において、単一のグローバル `#spinner-overlay` を常設し、内部リンク（`<a>`タグ）クリック時に即座にフルスクリーンスピナーを表示し、画面遷移完了（`RouteChangeListener`）およびコンポーネントのアンマウント・データ取得完了（`hideSpinner`）で即座に非表示にする仕組みを導入。
+   - `hideSpinner()` では `querySelectorAll('#spinner-overlay')` を用いて全スピナーインスタンスを一括非表示化し、画面表示後にスピナーが残り続ける現象を完全に防止。
    - Firebase SDK において `setPersistence(auth, browserLocalPersistence)` を有効化し、Safari 等での認証状態の永続化と即時復元を保証。
 

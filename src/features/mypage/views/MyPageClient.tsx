@@ -27,9 +27,16 @@ export default function MyPageClient() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
+    return () => {
+      hideSpinner();
+    };
+  }, []);
+
+  useEffect(() => {
     if (loading || isLoggingOut) return;
 
     if (!user) {
+      hideSpinner();
       handleInitialLogin();
       return;
     }
@@ -127,11 +134,7 @@ export default function MyPageClient() {
   };
 
   if (loading || (user && fetching)) {
-    return (
-      <div id="spinner-overlay" style={{ display: "flex" }}>
-        <div className="spinner"></div>
-      </div>
-    );
+    return null;
   }
   if (!user || isLoggingOut) return null;
 
