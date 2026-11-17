@@ -282,4 +282,5 @@ interface EnqueteAnswer {
 4. **アイコン統一**: すべての画面タイトル（`h1`）には、機能を象徴する Font Awesome アイコンを必ず付与する。
 5. **安全なエラーハンドリング**: `alert()` の同期呼び出しを禁止し、プロミスベースの共通ダイアログ（`showDialog`）で統一する。
 6. **自動ビルド検証**: コード変更後は必ず `npm run build` を実行し、Turbopack環境で0エラーであることを保証する。
+7. **Safari/WebKit 通信最適化**: Safari における WebChannel ストリーミング保留バグ（ドキュメント取得時の約30秒遅延）を防止するため、`src/lib/firebase.ts` で `initializeFirestore` に `experimentalAutoDetectLongPolling: true` を設定し、ロングポーリングへの自動フォールバックを有効化する。
 
