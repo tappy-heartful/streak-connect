@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import ClientLayout from "./ClientLayout";
 import "./globals.css";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: {
     template: "%s | SSJO Connect",
