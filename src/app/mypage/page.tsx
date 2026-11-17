@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "ユーザープロフィールおよび予約チケット管理",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function MyPage() {
   return <MyPageClient />;
 }

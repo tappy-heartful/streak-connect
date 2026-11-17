@@ -126,3 +126,80 @@ export async function checkIsBandMemberServer(uid: string): Promise<boolean> {
   const snap = await adminDb.collection("users").doc(uid).get();
   return snap.exists;
 }
+
+/**
+ * 予約画面初期データ取得（チケット・楽団員判定をServer Actionで一括高速取得）
+ */
+export async function getTicketReserveInitialDataAction(liveId: string, uid: string) {
+  const ticketId = `${liveId}_${uid}`;
+  const [ticketDoc, userDoc] = await Promise.all([
+    adminDb.collection("tickets").doc(ticketId).get(),
+    adminDb.collection("users").doc(uid).get(),
+  ]);
+
+  const isMember = userDoc.exists;
+  let ticket: TicketData | null = null;
+
+  if (ticketDoc.exists) {
+    const data = ticketDoc.data()!;
+    let needsUpdate = false;
+    const updates: any = {};
+
+    if (data.resType === "invite") {
+      let baseNo = data.reservationNo?.split("-")[0];
+      const isInvalidBase =
+        !baseNo ||
+        baseNo.startsWith("000") ||
+        baseNo.length !== 4 ||
+        isNaN(Number(baseNo));
+
+      const groups = data.groups || [];
+      const hasMismatchedGroups = groups.some((g: any) => {
+        const gParent = g.reservationNo?.split("-")[0];
+        return (
+          !g.reservationNo ||
+          gParent !== baseNo ||
+          g.reservationNo.startsWith("000")
+        );
+      });
+
+      if (isInvalidBase || hasMismatchedGroups) {
+        baseNo = Math.floor(1000 + Math.random() * 9000).toString();
+        const fixedGroups = groups.map((g: any, i: number) => ({
+          ...g,
+          reservationNo: `${baseNo}-${i + 1}`,
+        }));
+        data.reservationNo = baseNo;
+        data.groups = fixedGroups;
+        updates.reservationNo = baseNo;
+        updates.groups = fixedGroups;
+        needsUpdate = true;
+      }
+    } else {
+      const resNo = data.reservationNo;
+      const isInvalid =
+        !resNo ||
+        resNo.startsWith("000") ||
+        resNo.length !== 4 ||
+        isNaN(Number(resNo));
+      if (isInvalid) {
+        const newNo = Math.floor(1000 + Math.random() * 9000).toString();
+        data.reservationNo = newNo;
+        updates.reservationNo = newNo;
+        needsUpdate = true;
+      }
+    }
+
+    if (needsUpdate) {
+      try {
+        await adminDb.collection("tickets").doc(ticketId).update(updates);
+      } catch (e) {
+        console.warn("Server action ticket reservationNo repair failed:", e);
+      }
+    }
+
+    ticket = toPlainObject<TicketData>({ id: ticketDoc.id, ...data });
+  }
+
+  return { ticket, isMember };
+}

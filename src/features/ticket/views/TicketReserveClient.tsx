@@ -14,11 +14,10 @@ import {
 import Link from "next/link";
 import styles from "./ticket-reserve.module.css";
 import {
-  getTicketById,
   getLiveForTicket,
-  checkIsBandMember,
   saveTicketReservation,
 } from "../api/ticket-client-service";
+import { getTicketReserveInitialDataAction } from "../api/ticket-server-actions";
 import { ReserveGroup, TicketData } from "../types/ticket";
 import { Live } from "@/src/lib/firestore/types";
 
@@ -69,9 +68,10 @@ export default function TicketReserveClient({ id, initialLive }: TicketReserveCl
         setLive(liveData);
       }
 
-      // 既存予約の取得と在庫チェック
-      const ticketId = `${id}_${user!.uid}`;
-      const tData = await getTicketById(ticketId);
+      // 既存予約の取得とメンバーチェック（Server Actionで一括高速取得）
+      const { ticket: tData, isMember: memberStatus } =
+        await getTicketReserveInitialDataAction(id, user!.uid);
+      setIsMember(memberStatus);
 
       // 新規予約かつ在庫なしの判定
       if (
@@ -88,10 +88,6 @@ export default function TicketReserveClient({ id, initialLive }: TicketReserveCl
       }
 
       const maxComp = liveData.maxCompanions || 0;
-
-      // メンバーチェック
-      const memberStatus = await checkIsBandMember(user!.uid);
-      setIsMember(memberStatus);
 
       // 空配列を準備
       const emptyCompanions = Array(maxComp).fill("");
@@ -300,7 +296,11 @@ export default function TicketReserveClient({ id, initialLive }: TicketReserveCl
   };
 
   if (authLoading || fetching) {
-    return <div className="loading-text">Loading...</div>;
+    return (
+      <div id="spinner-overlay" style={{ display: "flex" }}>
+        <div className="spinner"></div>
+      </div>
+    );
   }
   if (!live) return null;
 

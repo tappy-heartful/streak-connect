@@ -282,8 +282,11 @@ interface EnqueteAnswer {
 4. **アイコン統一**: すべての画面タイトル（`h1`）には、機能を象徴する Font Awesome アイコンを必ず付与する。
 5. **安全なエラーハンドリング**: `alert()` の同期呼び出しを禁止し、プロミスベースの共通ダイアログ（`showDialog`）で統一する。
 6. **自動ビルド検証**: コード変更後は必ず `npm run build` を実行し、Turbopack環境で0エラーであることを保証する。
-7. **Server-side Pre-fetching & Instant Spinner (streak-navi 準拠)**:
-   - ライブ詳細、チケット詳細、チケット予約などの各画面において、`src/app/**/page.tsx`（Server Component）で `*-server-actions.ts` 経由でデータを事前取得し Client Component へ Props として渡すことで、クライアント側での不要な Firestore 読み込み待ちをゼロ化。
+7. **Server-side Pre-fetching & Server Actions 運用 (streak-navi 準拠)**:
+   - ライブ詳細、チケット詳細、チケット予約、マイページなどの各画面において、`*-server-actions.ts`（Firebase Admin SDK）経由でサーバーサイドからデータを取得。Safari WebKit 等のブラウザ環境における Firestore Client SDK の WebChannel ロングポーリング待機（30秒タイムアウト）や N+1 直列読み込み遅延を根本排除。
+   - `AuthContext` においても `getConnectUserServer(uid)` Server Action を介してユーザー情報を即座に同期し、認証状態の初期化待ちを最小化。
+   - `TicketReserveClient` および `MyPageClient` において、データ取得中（`loading || fetching`）はヘッダー・フッター間の空白化を防ぐため `#spinner-overlay` を明示的に表示。
+8. **Instant Navigation Spinner**:
    - `ClientLayout.tsx` において、内部リンク（`<a>`タグ）クリック時に即座にフルスクリーンスピナーを表示し、画面遷移完了（`RouteChangeListener`）で即座に非表示にする仕組みを導入。
    - Firebase SDK において `setPersistence(auth, browserLocalPersistence)` を有効化し、Safari 等での認証状態の永続化と即時復元を保証。
 

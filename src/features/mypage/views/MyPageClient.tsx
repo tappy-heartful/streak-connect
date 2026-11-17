@@ -16,7 +16,7 @@ import {
 import Link from "next/link";
 import styles from "./mypage.module.css";
 import { TicketCard } from "../components/TicketCard";
-import { getMyTickets } from "../api/mypage-client-service";
+import { getMyTicketsServer } from "../api/mypage-server-actions";
 import { TicketData } from "@/src/features/ticket/types/ticket";
 
 export default function MyPageClient() {
@@ -54,7 +54,7 @@ export default function MyPageClient() {
     showSpinner();
     setFetching(true);
     try {
-      const ticketList = await getMyTickets(user.uid);
+      const ticketList = await getMyTicketsServer(user.uid);
       setTickets(ticketList);
     } catch (e: any) {
       console.error(e);
@@ -127,7 +127,11 @@ export default function MyPageClient() {
   };
 
   if (loading || (user && fetching)) {
-    return <div className="inner">Loading...</div>;
+    return (
+      <div id="spinner-overlay" style={{ display: "flex" }}>
+        <div className="spinner"></div>
+      </div>
+    );
   }
   if (!user || isLoggingOut) return null;
 

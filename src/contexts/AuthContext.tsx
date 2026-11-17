@@ -1,10 +1,10 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { auth, db } from "@/src/lib/firebase";
+import { auth } from "@/src/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 import { setSession, clearAllAppSession } from "@/src/lib/functions";
+import { getConnectUserServer } from "@/src/features/auth/api/auth-server-actions";
 
 interface AuthContextType {
   user: User | null;
@@ -26,13 +26,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userData, setUserData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Firestoreから最新データを取得する共通関数
+  // Server Action経由で最新データを取得
   const fetchUserData = async (uid: string) => {
     try {
-      const userRef = doc(db, "connectUsers", uid);
-      const snap = await getDoc(userRef);
-      if (snap.exists()) {
-        const data = snap.data();
+      const data = await getConnectUserServer(uid);
+      if (data) {
         setUserData(data);
         Object.entries(data).forEach(([k, v]) => setSession(k, v));
       }
