@@ -17,7 +17,7 @@ function RouteChangeListener() {
   const { user } = useAuth();
 
   useEffect(() => {
-    // 画面遷移時にスピナーを閉じる
+    // 画面遷移完了時にスピナーを閉じる
     hideSpinner();
   }, [pathname, searchParams, user]);
 
@@ -25,6 +25,34 @@ function RouteChangeListener() {
 }
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    // 内部リンク（<a>タグ）クリック時に即座にスピナーを表示する (streak-navi準拠)
+    const handleAnchorClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest("a");
+      if (!target) return;
+
+      const href = target.getAttribute("href");
+      const targetAttr = target.getAttribute("target");
+
+      if (
+        href &&
+        href.startsWith("/") &&
+        targetAttr !== "_blank" &&
+        !e.ctrlKey &&
+        !e.metaKey
+      ) {
+        const currentPath = window.location.pathname + window.location.search;
+        if (href === currentPath || href === window.location.pathname) {
+          return;
+        }
+        import("@/src/lib/functions").then((mod) => mod.showSpinner());
+      }
+    };
+
+    document.addEventListener("click", handleAnchorClick);
+    return () => document.removeEventListener("click", handleAnchorClick);
+  }, []);
+
   return (
     <AuthProvider>
       <BreadcrumbProvider>

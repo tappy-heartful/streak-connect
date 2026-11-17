@@ -24,13 +24,14 @@ import { Live } from "@/src/lib/firestore/types";
 
 interface TicketReserveClientProps {
   id: string; // liveId
+  initialLive?: Live | null;
 }
 
-export default function TicketReserveClient({ id }: TicketReserveClientProps) {
+export default function TicketReserveClient({ id, initialLive }: TicketReserveClientProps) {
   const { user, loading: authLoading, userData } = useAuth();
   const router = useRouter();
 
-  const [live, setLive] = useState<Live | null>(null);
+  const [live, setLive] = useState<Live | null>(initialLive || null);
   const [resType, setResType] = useState<"invite" | "general">("general");
 
   // 一般予約用
@@ -57,13 +58,16 @@ export default function TicketReserveClient({ id }: TicketReserveClientProps) {
     showSpinner();
     setFetching(true);
     try {
-      const liveData = await getLiveForTicket(id);
+      let liveData = live;
       if (!liveData) {
-        await showDialog("ライブ情報が見つかりません。", true);
-        router.push("/home");
-        return;
+        liveData = (await getLiveForTicket(id)) as Live;
+        if (!liveData) {
+          await showDialog("ライブ情報が見つかりません。", true);
+          router.push("/home");
+          return;
+        }
+        setLive(liveData);
       }
-      setLive(liveData as Live);
 
       // 既存予約の取得と在庫チェック
       const ticketId = `${id}_${user!.uid}`;

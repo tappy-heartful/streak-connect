@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import ClientLayout from "./ClientLayout";
 import "./globals.css";
 
+// アプリ全体を動的レンダリング（streak-navi準拠）
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: {
     template: "%s | SSJO Connect",

@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { initializeFirestore, getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,17 +13,11 @@ const firebaseConfig = {
 };
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+export const auth = getAuth(app);
 
-// Safari/WebKit のストリーミング保留バグ（約30秒のローディング遅延）を防止するため、
-// experimentalAutoDetectLongPolling を有効にして初期化
-let firestoreDb;
-try {
-  firestoreDb = initializeFirestore(app, {
-    experimentalAutoDetectLongPolling: true,
-  });
-} catch {
-  firestoreDb = getFirestore(app);
+// streak-navi準拠: Standalone・Safari等でのログイン永続化を確実にする
+if (typeof window !== "undefined") {
+  setPersistence(auth, browserLocalPersistence);
 }
 
-export const db = firestoreDb;
-export const auth = getAuth(app);

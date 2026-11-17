@@ -282,5 +282,8 @@ interface EnqueteAnswer {
 4. **アイコン統一**: すべての画面タイトル（`h1`）には、機能を象徴する Font Awesome アイコンを必ず付与する。
 5. **安全なエラーハンドリング**: `alert()` の同期呼び出しを禁止し、プロミスベースの共通ダイアログ（`showDialog`）で統一する。
 6. **自動ビルド検証**: コード変更後は必ず `npm run build` を実行し、Turbopack環境で0エラーであることを保証する。
-7. **Safari/WebKit 通信最適化**: Safari における WebChannel ストリーミング保留バグ（ドキュメント取得時の約30秒遅延）を防止するため、`src/lib/firebase.ts` で `initializeFirestore` に `experimentalAutoDetectLongPolling: true` を設定し、ロングポーリングへの自動フォールバックを有効化する。
+7. **Server-side Pre-fetching & Instant Spinner (streak-navi 準拠)**:
+   - ライブ詳細、チケット詳細、チケット予約などの各画面において、`src/app/**/page.tsx`（Server Component）で `*-server-actions.ts` 経由でデータを事前取得し Client Component へ Props として渡すことで、クライアント側での不要な Firestore 読み込み待ちをゼロ化。
+   - `ClientLayout.tsx` において、内部リンク（`<a>`タグ）クリック時に即座にフルスクリーンスピナーを表示し、画面遷移完了（`RouteChangeListener`）で即座に非表示にする仕組みを導入。
+   - Firebase SDK において `setPersistence(auth, browserLocalPersistence)` を有効化し、Safari 等での認証状態の永続化と即時復元を保証。
 

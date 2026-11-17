@@ -20,19 +20,24 @@ import { Live } from "@/src/lib/firestore/types";
 
 interface LiveDetailClientProps {
   id: string;
+  initialLive?: Live | null;
 }
 
-export default function LiveDetailClient({ id }: LiveDetailClientProps) {
+export default function LiveDetailClient({ id, initialLive }: LiveDetailClientProps) {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  const [live, setLive] = useState<Live | null>(null);
+  const [live, setLive] = useState<Live | null>(initialLive || null);
   const [isReserved, setIsReserved] = useState(false);
-  const [fetching, setFetching] = useState(true);
+  const [fetching, setFetching] = useState(!initialLive);
 
   useEffect(() => {
     if (!id) return;
-    loadData();
+    if (!live) {
+      loadData();
+    } else if (user) {
+      checkUserTicket(id, user.uid).then((reserved) => setIsReserved(reserved));
+    }
   }, [id, user]);
 
   const loadData = async () => {

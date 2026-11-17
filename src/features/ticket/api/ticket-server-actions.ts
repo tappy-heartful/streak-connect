@@ -2,6 +2,9 @@
 
 import { adminDb } from "@/src/lib/firebase-admin";
 import { sendLinePushConnect, getLineUidByUid } from "@/src/lib/line";
+import { toPlainObject } from "@/src/lib/firestore/utils";
+import { TicketData } from "../types/ticket";
+import { Live } from "@/src/lib/firestore/types";
 
 /**
  * 予約完了時の LINE 通知送信 Server Action
@@ -50,43 +53,34 @@ export async function sendTicketReservationNoticeAction(
       }
     }
 
-    // 4. メッセージ組み立て
-    const statusLabel = isUpdate
-      ? "ご予約内容を更新しました"
-      : "ご予約ありがとうございます";
-
+    // 4. 来場者リスト本文の生成
     let listText = "";
     if (isInvite) {
-      if (ticket.groups && ticket.groups.length > 0) {
-        listText = "【招待グループ一覧】\n";
-        ticket.groups.forEach((g: any) => {
-          const guestNames =
-            g.companions && g.companions.length > 0
-              ? g.companions.filter((c: string) => c !== "").join("様、") + "様"
-              : "（ゲストなし）";
-          listText += `・${g.groupName}: ${guestNames}\n`;
-        });
-      }
+      const groups = ticket.groups || [];
+      listText =
+        `【ご招待者様一覧】\n` +
+        groups
+          .map((g: any, i: number) => {
+            const comps = (g.companions || []).filter(Boolean).join("、");
+            return `▼ グループ${i + 1}: ${g.groupName || "名称未設定"}\n${comps ? `  ${comps}` : "  (来場者未登録)"}`;
+          })
+          .join("\n") +
+        "\n\n";
     } else {
-      if (ticket.companions && ticket.companions.length > 0) {
-        const validComps = ticket.companions.filter((c: string) => c !== "");
-        if (validComps.length > 0) {
-          listText = `同伴者様: ${validComps.join("様、")}様\n`;
-        }
-      }
+      const comps = (ticket.companions || []).filter(Boolean).join("、");
+      listText =
+        `【予約者様一覧】\n` +
+        `代表者: ${ticket.representativeName || "未設定"}\n` +
+        (comps ? `同伴者: ${comps}\n\n` : "\n");
     }
 
     const message =
-      `${userDisplayName} 様\n\n` +
-      `🎫 ${statusLabel}！\n` +
-      `${
-        isInvite
-          ? "ライブにご招待する各グループに詳細URL（確認画面より取得可能）を共有して"
-          : "以下のチケットURLを当日会場受付にてご提示"
-      }ください🙇‍♀️\n\n` +
+      `Swing Streak Jazz Orchestra です！\n\n` +
+      `${userDisplayName} 様\n` +
+      `ライブチケットの${isUpdate ? "予約変更" : "お取り置き"}が完了いたしました。\n\n` +
       liveInfoText +
-      `予約番号: ${ticket.reservationNo || "----"}\n` +
-      `${isInvite ? "予約担当" : "代表者"}: ${ticket.representativeName} 様\n` +
+      `【予約番号】\n` +
+      `${ticket.reservationNo}\n\n` +
       listText +
       `合計人数: ${ticket.totalCount} 名様\n` +
       `予約種別: ${isInvite ? "ご招待" : "一般"}\n\n` +
@@ -107,3 +101,28 @@ export async function sendTicketReservationNoticeAction(
   }
 }
 
+/**
+ * チケット情報の取得 (Server Component用)
+ */
+export async function getTicketServer(ticketId: string): Promise<TicketData | null> {
+  const snap = await adminDb.collection("tickets").doc(ticketId).get();
+  if (!snap.exists) return null;
+  return toPlainObject<TicketData>({ id: snap.id, ...snap.data() });
+}
+
+/**
+ * ライブ情報の取得 (Server Component用)
+ */
+export async function getLiveServer(liveId: string): Promise<Live | null> {
+  const snap = await adminDb.collection("lives").doc(liveId).get();
+  if (!snap.exists) return null;
+  return toPlainObject<Live>({ id: snap.id, ...snap.data() });
+}
+
+/**
+ * 楽団メンバーチェック (Server Component用)
+ */
+export async function checkIsBandMemberServer(uid: string): Promise<boolean> {
+  const snap = await adminDb.collection("users").doc(uid).get();
+  return snap.exists;
+}

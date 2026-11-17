@@ -21,23 +21,31 @@ import { Live } from "@/src/lib/firestore/types";
 
 interface TicketDetailClientProps {
   id: string; // ticketId
+  initialTicket?: TicketData | null;
+  initialLive?: Live | null;
 }
 
-export default function TicketDetailClient({ id }: TicketDetailClientProps) {
+export default function TicketDetailClient({
+  id,
+  initialTicket,
+  initialLive,
+}: TicketDetailClientProps) {
   const searchParams = useSearchParams();
   const groupIndexParam = searchParams.get("g");
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  const [ticket, setTicket] = useState<TicketData | null>(null);
-  const [live, setLive] = useState<Live | null>(null);
-  const [fetching, setFetching] = useState(true);
+  const [ticket, setTicket] = useState<TicketData | null>(initialTicket || null);
+  const [live, setLive] = useState<Live | null>(initialLive || null);
+  const [fetching, setFetching] = useState(!initialTicket);
 
   const isGuestView = !!groupIndexParam;
 
   useEffect(() => {
     if (!id) return;
-    loadData();
+    if (!ticket) {
+      loadData();
+    }
   }, [id]);
 
   const loadData = async () => {
